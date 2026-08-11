@@ -3,297 +3,313 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>자율좌석 현황판</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<meta name="robots" content="noindex,nofollow" />
+<title>자율좌석 현황판 · 빌리지베이비 HR</title>
+<link rel="icon" type="image/png" href="logo_BK.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --paper: #F6F4EF;
-    --paper-raised: #FFFFFF;
-    --ink: #22252B;
-    --ink-soft: #62655F;
-    --ink-faint: #A8A399;
-    --line: #DAD5C9;
-    --yeouido: #1D6F8C;
-    --yeouido-soft: #E4EEF1;
-    --chungmuro: #B5562D;
-    --chungmuro-soft: #F3E7DD;
-    --alert: #C23B3B;
-    --alert-soft: #F7E4E1;
-    --radius: 14px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Pretendard', -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-  }
-  .wrap{max-width:1080px;margin:0 auto;padding:36px 20px 80px;}
+:root{
+  /* ===== 자율좌석 현황판 디자인 토큰 (hr.villagebaby.kr 톤 기반) ===== */
+  --blue:#2D7CD2;
+  --blue-700:#1f5796;
+  --blue-600:#2669b4;
+  --blue-100:#d8e8f8;
+  --blue-50:#eaf2fb;
+  --gray:#898989;
+  --gray-900:#1f2329;
+  --gray-800:#3a3f47;
+  --gray-700:#5b6068;
+  --gray-600:#777c84;
+  --gray-400:#aeb2b8;
+  --gray-300:#d6d9dd;
+  --gray-200:#e8eaed;
+  --gray-100:#f1f3f5;
+  --gray-50:#f8f9fa;
+  --white:#fff;
+  --sys-red:#F2545B;
+  --red-soft:#fdecec;
+  --r-card:16px; --r-md:8px; --r-sm:4px;
+  --sh-s:0 1px 6px rgba(0,0,0,.12);
+  --sh-xl:0 3px 27px 6px rgba(0,0,0,.15);
+  --sh-blue:0 3px 14px 1px rgba(45,124,210,.32);
+  --font:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font);color:var(--gray-900);background:var(--gray-50);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;font-size:14px}
+a{color:inherit;text-decoration:none}
 
-  header{margin-bottom:28px; position:relative;}
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    letter-spacing:0.14em;
-    color:var(--ink-soft);
-    text-transform:uppercase;
-    margin-bottom:10px;
-  }
-  h1{ font-size:clamp(26px, 4vw, 34px); font-weight:800; margin:0 0 8px; letter-spacing:-0.01em; }
-  .sub{color:var(--ink-soft); font-size:14.5px; margin:0;}
-  .logout-btn{
-    position:absolute; top:0; right:0;
-    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600;
-    border:1px solid var(--line); background:var(--paper-raised); border-radius:8px;
-    padding:6px 10px; cursor:pointer; color:var(--ink-soft);
-  }
-  .logout-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 60px}
 
-  .tabs{ display:flex; gap:4px; margin:26px 0 20px; border-bottom:1px solid var(--line); }
-  .tab{
-    font-family:'Pretendard'; font-size:14.5px; font-weight:600; color:var(--ink-soft);
-    background:none; border:none; padding:10px 4px; margin-right:22px; cursor:pointer;
-    position:relative; top:1px;
-  }
-  .tab.active{color:var(--ink);}
-  .tab.active::after{ content:""; position:absolute; left:0;right:0;bottom:-1px; height:2px; background:var(--ink); }
+/* ===== Topbar (hr 스타일) ===== */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;padding:30px 0 18px;gap:20px}
+.page-h h1{font-size:25px;font-weight:700;letter-spacing:-.6px}
+.page-h p{color:var(--gray);margin-top:5px;font-size:13px}
+.topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.hr-chip{
+  display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 6px;
+  background:var(--white);border:1px solid var(--gray-200);border-radius:999px;
+  font-weight:700;font-size:13px;color:var(--gray-800);box-shadow:var(--sh-s);transition:.12s;
+}
+.hr-chip:hover{border-color:var(--blue);color:var(--blue)}
+.hr-chip .logo{width:26px;height:26px;border-radius:50%;overflow:hidden;box-shadow:var(--sh-blue);flex-shrink:0}
+.hr-chip .logo img{width:100%;height:100%;object-fit:cover;display:block}
+@media (max-width:640px){ .topbar{flex-direction:column} .hr-chip span{max-width:none} }
 
-  .legend{display:flex; gap:18px; margin-bottom:18px; flex-wrap:wrap; align-items:center;}
-  .legend-item{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft);}
-  .dot-key{width:10px; height:10px; border-radius:50%;}
-  .dot-key.yeouido{background:var(--yeouido);}
-  .dot-key.chungmuro{background:var(--chungmuro);}
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 18px;border-radius:var(--r-md);font-weight:700;font-size:14px;transition:.12s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:var(--sh-blue)}
+.btn-primary:hover{background:var(--blue-600)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-ghost{background:transparent;color:var(--gray-600);border:1.4px solid var(--gray-300)}
+.btn-ghost:hover{background:var(--gray-100)}
+.btn-pill{border-radius:999px}
+.btn-sm{height:32px;padding:0 13px;font-size:13px}
+.btn-block{width:100%}
 
-  /* Month navigator */
-  .month-nav{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:14px;
-  }
-  .month-title{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:17px; font-weight:600; letter-spacing:0.02em;
-  }
-  .nav-btns{display:flex; gap:8px;}
-  .nav-btn{
-    width:32px; height:32px; border-radius:8px; border:1px solid var(--line);
-    background:var(--paper-raised); cursor:pointer; font-size:14px; color:var(--ink-soft);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .nav-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
-  .today-btn{
-    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
-    border:1px solid var(--line); background:var(--paper-raised); border-radius:8px;
-    padding:0 10px; cursor:pointer; color:var(--ink-soft);
-  }
-  .today-btn:hover{ color:var(--ink); }
+/* ===== Tabs ===== */
+.tabs{display:flex;gap:6px;margin:6px 0 20px}
+.tab{
+  height:36px;padding:0 16px;border-radius:999px;font-size:13.5px;font-weight:500;
+  color:var(--gray-600);background:var(--white);border:1px solid var(--gray-200);transition:.12s;
+}
+.tab:hover{background:var(--gray-100)}
+.tab.active{background:var(--blue-50);color:var(--blue);border-color:var(--blue-100);font-weight:700}
 
-  /* Calendar grid */
-  .weekday-row{
-    display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:6px;
-  }
-  .weekday-row div{
-    text-align:center; font-family:'IBM Plex Mono', monospace; font-size:11px;
-    color:var(--ink-faint); font-weight:600; letter-spacing:0.05em;
-  }
-  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
-  .cal-cell{
-    background:var(--paper-raised);
-    border:1px solid var(--line);
-    border-radius:10px;
-    min-height:86px;
-    padding:8px 8px 10px;
-    cursor:pointer;
-    display:flex; flex-direction:column; gap:6px;
-    transition:box-shadow .12s ease, transform .12s ease;
-  }
-  .cal-cell:hover{ box-shadow:0 3px 10px rgba(0,0,0,.06); transform:translateY(-1px); }
-  .cal-cell.out-month{ opacity:.38; }
-  .cal-cell.weekend{ background:#F0EEE7; cursor:default; }
-  .cal-cell.weekend:hover{ box-shadow:none; transform:none; }
-  .cal-cell.selected{ border-color:var(--ink); box-shadow:0 0 0 1.5px var(--ink) inset; }
-  .cal-cell.is-today .cal-date-num{ color:var(--ink); background:var(--ink); color:var(--paper); }
-  .cal-date-num{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600;
-    width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center;
-  }
-  .cal-badges{ display:flex; flex-direction:column; gap:3px; margin-top:auto; }
-  .cal-badge{
-    display:flex; align-items:center; justify-content:space-between;
-    font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:600;
-    padding:2px 6px; border-radius:5px;
-  }
-  .cal-badge.yeouido{ background:var(--yeouido-soft); color:var(--yeouido); }
-  .cal-badge.chungmuro{ background:var(--chungmuro-soft); color:var(--chungmuro); }
-  .cal-badge.over{ background:var(--alert-soft); color:var(--alert); }
-  @media (max-width:720px){
-    .cal-grid, .weekday-row{ grid-template-columns:repeat(7,1fr); gap:5px; }
-    .cal-cell{ min-height:64px; padding:6px; }
-    .cal-badge{ font-size:9px; padding:1px 4px; }
-  }
+.legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--gray-700)}
+.dot-key{width:10px;height:10px;border-radius:50%}
+.dot-key.yeouido{background:var(--blue)}
+.dot-key.chungmuro{background:var(--gray-600)}
+.hint{color:var(--gray);font-size:13px;margin-bottom:18px}
 
-  /* Detail panel */
-  .detail{
-    margin-top:24px;
-    background:var(--paper-raised);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:22px;
-  }
-  .detail-date{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft);
-    margin-bottom:4px;
-  }
-  .detail-title{ font-size:18px; font-weight:800; margin-bottom:18px; }
+/* ===== Month navigator ===== */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.month-title{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{
+  width:32px;height:32px;border-radius:var(--r-md);border:1px solid var(--gray-200);
+  background:var(--white);cursor:pointer;font-size:14px;color:var(--gray-600);
+  display:flex;align-items:center;justify-content:center;transition:.12s;
+}
+.nav-btn:hover{color:var(--blue);border-color:var(--blue-100);background:var(--blue-50)}
+.today-btn{
+  font-size:12px;font-weight:700;border:1px solid var(--gray-200);background:var(--white);
+  border-radius:999px;padding:0 12px;cursor:pointer;color:var(--gray-600);transition:.12s;
+}
+.today-btn:hover{color:var(--blue);border-color:var(--blue-100);background:var(--blue-50)}
 
-  .office-panels{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:22px; }
-  @media (max-width:640px){ .office-panels{ grid-template-columns:1fr; } }
-  .office-panel{ border-radius:12px; padding:16px; }
-  .office-panel.yeouido{ background:var(--yeouido-soft); }
-  .office-panel.chungmuro{ background:var(--chungmuro-soft); }
-  .op-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .op-name{ font-size:13.5px; font-weight:800; }
-  .op-name.yeouido{ color:var(--yeouido); }
-  .op-name.chungmuro{ color:var(--chungmuro); }
-  .op-count{ font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; }
-  .op-count.over{ color:var(--alert); }
+/* ===== Calendar grid ===== */
+.weekday-row{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:6px}
+.weekday-row div{text-align:center;font-size:11px;color:var(--gray-400);font-weight:700;letter-spacing:.05em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.cal-cell{
+  background:var(--white);border:1px solid var(--gray-200);border-radius:12px;
+  min-height:86px;padding:8px 8px 10px;cursor:pointer;
+  display:flex;flex-direction:column;gap:6px;
+  transition:box-shadow .12s ease,transform .12s ease,border-color .12s ease;
+}
+.cal-cell:hover{box-shadow:var(--sh-s);transform:translateY(-1px);border-color:var(--gray-300)}
+.cal-cell.out-month{opacity:.38}
+.cal-cell.weekend{background:var(--gray-100);cursor:default;border-color:var(--gray-100)}
+.cal-cell.weekend:hover{box-shadow:none;transform:none}
+.cal-cell.selected{border-color:var(--blue);box-shadow:0 0 0 1.5px var(--blue) inset}
+.cal-cell.is-today .cal-date-num{background:var(--blue);color:#fff}
+.cal-date-num{
+  font-size:12px;font-weight:700;width:20px;height:20px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;color:var(--gray-800);
+}
+.cal-badges{display:flex;flex-direction:column;gap:3px;margin-top:auto}
+.cal-badge{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;
+}
+.cal-badge.yeouido{background:var(--blue-50);color:var(--blue)}
+.cal-badge.chungmuro{background:var(--gray-200);color:var(--gray-700)}
+.cal-badge.over{background:var(--red-soft);color:var(--sys-red)}
+@media (max-width:720px){
+  .cal-grid,.weekday-row{gap:5px}
+  .cal-cell{min-height:64px;padding:6px}
+  .cal-badge{font-size:9px;padding:1px 4px}
+}
 
-  .seat-grid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:4px; margin-bottom:12px; }
-  .seat-dot{ width:100%; aspect-ratio:1; border-radius:50%; border:1.4px solid currentColor; background:transparent; }
-  .seat-dot.filled.yeouido{ background:var(--yeouido); border-color:var(--yeouido); }
-  .seat-dot.filled.chungmuro{ background:var(--chungmuro); border-color:var(--chungmuro); }
-  .seat-dot.empty.yeouido{ color:var(--yeouido); opacity:.4; }
-  .seat-dot.empty.chungmuro{ color:var(--chungmuro); opacity:.4; }
+/* ===== Detail panel ===== */
+.detail{
+  margin-top:24px;background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--r-card);box-shadow:var(--sh-s);padding:22px;
+}
+.detail-date{font-size:12px;color:var(--gray);margin-bottom:4px;font-weight:500}
+.detail-title{font-size:18px;font-weight:700;margin-bottom:18px;letter-spacing:-.3px}
 
-  .over-note{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--alert); font-weight:600; margin-bottom:10px; }
+.office-panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+@media (max-width:640px){.office-panels{grid-template-columns:1fr}}
+.office-panel{border-radius:12px;padding:16px}
+.office-panel.yeouido{background:var(--blue-50)}
+.office-panel.chungmuro{background:var(--gray-100)}
+.op-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.op-name{font-size:13.5px;font-weight:700}
+.op-name.yeouido{color:var(--blue)}
+.op-name.chungmuro{color:var(--gray-700)}
+.op-count{font-size:13px;font-weight:700}
+.op-count.over{color:var(--sys-red)}
 
-  .name-chip-row{ display:flex; flex-wrap:wrap; gap:7px; }
-  .name-chip{
-    font-size:12.5px; padding:5px 6px 5px 10px; border-radius:999px;
-    background:var(--paper-raised); border:1px solid var(--line);
-    display:flex; align-items:center; gap:6px;
-  }
-  .name-chip .badge{
-    font-family:'IBM Plex Mono', monospace; font-size:9.5px; padding:1px 5px;
-    border-radius:5px; background:var(--line); color:var(--ink-soft);
-  }
-  .name-chip .x-btn{
-    width:16px; height:16px; border-radius:50%; border:none; background:var(--paper);
-    color:var(--ink-soft); font-size:11px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
-  .name-chip .x-btn:hover{ background:var(--alert-soft); color:var(--alert); }
-  .empty-note{ color:var(--ink-soft); font-size:13px; }
+.seat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px}
+.seat-dot{width:100%;aspect-ratio:1;border-radius:50%;border:1.4px solid currentColor;background:transparent}
+.seat-dot.filled.yeouido{background:var(--blue);border-color:var(--blue)}
+.seat-dot.filled.chungmuro{background:var(--gray-600);border-color:var(--gray-600)}
+.seat-dot.empty.yeouido{color:var(--blue);opacity:.35}
+.seat-dot.empty.chungmuro{color:var(--gray-600);opacity:.35}
 
-  /* Self check-in */
-  .checkin-box{
-    border-top:1px dashed var(--line);
-    padding-top:18px; margin-top:4px;
-    display:flex; gap:10px; flex-wrap:wrap; align-items:end;
-  }
-  .checkin-field label{ display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
-  .checkin-field select{
-    font-family:'Pretendard'; font-size:14px; padding:9px 10px;
-    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
-    min-width:150px;
-  }
-  .weekend-note{ color:var(--ink-soft); font-size:13.5px; }
+.over-note{font-size:11px;color:var(--sys-red);font-weight:700;margin-bottom:10px}
 
-  .btn{ font-family:'Pretendard'; font-weight:700; font-size:13.5px; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; }
-  .btn-primary{ background:var(--ink); color:var(--paper); }
-  .btn-primary:hover{ opacity:.88; }
-  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
-  .btn-ghost{ background:var(--paper-raised); border:1px solid var(--line); color:var(--ink-soft); }
-  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-soft); }
+.name-chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.name-chip{
+  font-size:12.5px;padding:5px 6px 5px 10px;border-radius:999px;
+  background:var(--white);border:1px solid var(--gray-200);
+  display:flex;align-items:center;gap:6px;
+}
+.name-chip .badge{
+  font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:5px;
+  background:var(--gray-100);color:var(--gray-600);
+}
+.name-chip .x-btn{
+  width:16px;height:16px;border-radius:50%;border:none;background:var(--gray-100);
+  color:var(--gray-600);font-size:11px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.12s;
+}
+.name-chip .x-btn:hover{background:var(--red-soft);color:var(--sys-red)}
+.empty-note{color:var(--gray);font-size:13px}
 
-  /* Admin roster */
-  .admin-panel{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
-  .panel-title{ font-size:15px; font-weight:800; margin:0 0 4px; }
-  .panel-sub{ font-size:13px; color:var(--ink-soft); margin:0 0 18px; }
-  .form-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:22px; }
-  @media (max-width:700px){ .form-grid{ grid-template-columns:1fr 1fr; } }
-  .field label{ display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
-  .field input[type=text], .field select{
-    width:100%; font-family:'Pretendard'; font-size:14px; padding:9px 10px;
-    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
-  }
-  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
-  thead th{
-    text-align:left; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.04em;
-    color:var(--ink-soft); text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--line);
-  }
-  tbody td{ padding:10px; border-bottom:1px solid var(--line); }
-  tbody tr:last-child td{ border-bottom:none; }
-  .type-pill{ font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; }
-  .type-pill.정규{ background:#E4EEF1; color:var(--yeouido); }
-  .type-pill.인턴{ background:#F3E7DD; color:var(--chungmuro); }
-  .icon-btn{
-    border:1px solid var(--line); background:var(--paper); border-radius:6px; font-size:12px;
-    padding:5px 9px; cursor:pointer; color:var(--ink-soft);
-  }
-  .icon-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
-  .empty-table{ padding:30px 10px; text-align:center; color:var(--ink-soft); font-size:13.5px; }
+/* ===== Self check-in ===== */
+.checkin-box{
+  border-top:1px dashed var(--gray-300);padding-top:18px;margin-top:4px;
+  display:flex;gap:10px;flex-wrap:wrap;align-items:end;
+}
+.checkin-field label{display:block;font-size:11.5px;color:var(--gray);margin-bottom:5px;font-weight:500;padding-left:2px}
+.checkin-field select{
+  height:40px;font-size:14px;padding:0 12px;border:1.4px solid var(--gray-300);
+  border-radius:var(--r-md);background:var(--white);color:var(--gray-900);min-width:150px;cursor:pointer;
+}
+.weekend-note{color:var(--gray);font-size:13.5px}
 
-  .toast{
-    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
-    background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px;
-    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
-    z-index:100;
-  }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
-  .loading{ color:var(--ink-soft); font-size:13.5px; padding:20px 0; }
+/* ===== Admin roster ===== */
+.admin-panel{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-card);box-shadow:var(--sh-s);padding:22px}
+.panel-title{font-size:15px;font-weight:700;margin:0 0 4px}
+.panel-sub{font-size:13px;color:var(--gray);margin:0 0 18px}
+.form-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:22px}
+@media (max-width:700px){.form-grid{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-size:11.5px;color:var(--gray);margin-bottom:5px;font-weight:500;padding-left:2px}
+.field input[type=text],.field select{
+  width:100%;height:40px;font-size:14px;padding:0 12px;
+  border:1.4px solid var(--gray-300);border-radius:var(--r-md);background:var(--white);color:var(--gray-900);
+}
+.field select{cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{
+  text-align:left;font-size:11.5px;letter-spacing:.03em;color:var(--gray);
+  font-weight:500;padding:8px 10px;border-bottom:1px solid var(--gray-200);
+}
+tbody td{padding:10px;border-bottom:1px solid var(--gray-100)}
+tbody tr:last-child td{border-bottom:none}
+.type-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.type-pill.정규{background:var(--blue-50);color:var(--blue)}
+.type-pill.인턴{background:var(--gray-200);color:var(--gray-700)}
+.icon-btn{
+  border:1px solid var(--gray-300);background:var(--white);border-radius:var(--r-md);font-size:12px;
+  padding:5px 10px;cursor:pointer;color:var(--gray-600);transition:.12s;
+}
+.icon-btn:hover{color:var(--blue);border-color:var(--blue-100);background:var(--blue-50)}
+.empty-table{padding:30px 10px;text-align:center;color:var(--gray);font-size:13.5px}
 
-  /* Password gate */
-  .gate{
-    position:fixed; inset:0; background:var(--paper); z-index:50;
-    display:flex; align-items:center; justify-content:center; padding:20px;
-  }
-  .gate-card{
-    background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius);
-    padding:34px 30px; width:min(92vw, 400px);
-  }
-  .gate-eyebrow{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em;
-    color:var(--ink-soft); text-transform:uppercase; margin-bottom:10px;
-  }
-  .gate-title{ font-size:20px; font-weight:800; margin:0 0 6px; }
-  .gate-sub{ font-size:13.5px; color:var(--ink-soft); margin:0 0 20px; }
-  .gate-card input[type=password]{
-    width:100%; font-family:'Pretendard'; font-size:15px; padding:11px 12px;
-    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
-    margin-bottom:12px;
-  }
-  .gate-error{ color:var(--alert); font-size:13px; margin:0 0 12px; display:none; }
-  .gate-create{ display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
-  .gate-create p{ font-size:12.5px; color:var(--ink-soft); margin:0 0 10px; }
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:var(--gray-900);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.loading{color:var(--gray);font-size:13.5px;padding:20px 0}
+
+/* ===== Password gate (hr 로그인 화면 스타일) ===== */
+.gate{
+  position:fixed;inset:0;z-index:50;
+  background:linear-gradient(155deg,var(--blue-50),var(--gray-100));
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.gate-card{
+  background:var(--white);border-radius:var(--r-card);box-shadow:var(--sh-xl);
+  padding:34px 32px;width:404px;max-width:100%;
+}
+.gate-brand{display:flex;align-items:center;gap:11px;margin-bottom:24px}
+.gate-brand .logo{width:44px;height:44px;border-radius:50%;overflow:hidden;box-shadow:var(--sh-blue);flex-shrink:0}
+.gate-brand .logo img{width:100%;height:100%;object-fit:cover;display:block}
+.gate-brand .lb-t{font-weight:700;font-size:17px;letter-spacing:-.3px}
+.gate-brand .lb-s{font-size:12px;color:var(--gray)}
+.gate-card h2{font-size:22px;font-weight:700;margin-bottom:7px}
+.gate-desc{color:var(--gray);font-size:13px;margin-bottom:22px;line-height:1.55}
+.gate-card input[type=password]{
+  width:100%;height:44px;font-size:15px;padding:0 14px;
+  border:1.4px solid var(--gray-300);border-radius:var(--r-md);background:var(--white);color:var(--gray-900);
+  margin-bottom:10px;transition:.12s;
+}
+.gate-card input[type=password]:focus{outline:none;border-color:var(--blue)}
+.gate-error{color:var(--sys-red);font-size:13px;margin:2px 0 12px;display:none;line-height:1.5}
+.gate-switch{
+  display:block;width:100%;text-align:center;margin-top:16px;font-size:13px;color:var(--gray);
+}
+.gate-switch b{color:var(--blue);font-weight:700}
+.gate-switch:hover b{text-decoration:underline}
 </style>
 </head>
 <body>
 
 <div class="gate" id="gate">
   <div class="gate-card">
-    <div class="gate-eyebrow">VILLAGE BABY · HR OPS</div>
-    <p class="gate-title">자율좌석 현황판</p>
-    <p class="gate-sub">팀 비밀번호를 입력하면 현황판에 입장합니다.</p>
-    <input type="password" id="gate-pw" placeholder="비밀번호" autocomplete="current-password" />
-    <p class="gate-error" id="gate-error"></p>
-    <button class="btn btn-primary" id="gate-enter" style="width:100%;">입장</button>
-    <div class="gate-create" id="gate-create">
-      <p>이 비밀번호로 만들어진 현황판이 없습니다. 오타가 아닌지 확인해주세요.<br/>처음 설정하는 경우에만 아래 버튼으로 새 현황판을 만드세요.</p>
-      <button class="btn btn-ghost" id="gate-create-btn" style="width:100%;">이 비밀번호로 새 현황판 만들기</button>
+    <div class="gate-brand">
+      <div class="logo"><img src="logo_BK.png" alt="빌리지베이비" /></div>
+      <div><div class="lb-t">자율좌석 현황판</div><div class="lb-s">빌리지베이비 HR</div></div>
+    </div>
+
+    <div id="mode-enter">
+      <h2>입장하기</h2>
+      <p class="gate-desc">팀 비밀번호를 입력하면 현황판에 입장합니다.<br/>등록·취소 내용은 팀 전체에 실시간으로 공유됩니다.</p>
+      <input type="password" id="gate-pw" placeholder="팀 비밀번호" autocomplete="current-password" />
+      <p class="gate-error" id="gate-error"></p>
+      <button class="btn btn-primary btn-block" id="gate-enter">입장</button>
+      <button class="gate-switch" id="to-setup">현황판을 처음 만드시나요? <b>비밀번호 설정하기</b></button>
+    </div>
+
+    <div id="mode-setup" style="display:none;">
+      <h2>비밀번호 설정</h2>
+      <p class="gate-desc">팀이 함께 사용할 비밀번호를 최초 1회 설정합니다.<br/>설정한 비밀번호를 팀원들에게 공유해주세요.</p>
+      <input type="password" id="setup-pw" placeholder="새 비밀번호 (6자 이상 권장)" autocomplete="new-password" />
+      <input type="password" id="setup-pw2" placeholder="비밀번호 확인" autocomplete="new-password" />
+      <p class="gate-error" id="setup-error"></p>
+      <button class="btn btn-primary btn-block" id="setup-btn">현황판 만들기</button>
+      <button class="gate-switch" id="to-enter">이미 비밀번호가 있나요? <b>입장하기</b></button>
     </div>
   </div>
 </div>
 
 <div class="wrap" id="app" style="display:none;">
-  <header>
-    <div class="eyebrow">VILLAGE BABY · HR OPS</div>
-    <h1>자율좌석 현황판</h1>
-    <p class="sub">여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 등록 내용은 팀 전체에 실시간으로 공유됩니다.</p>
-    <button class="logout-btn" id="logout-btn">잠그기</button>
-  </header>
+  <div class="topbar">
+    <div class="page-h">
+      <h1>자율좌석 현황판</h1>
+      <p>여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 팀 전체에 실시간으로 공유됩니다.</p>
+    </div>
+    <div class="topbar-actions">
+      <a class="hr-chip" href="https://hr.villagebaby.kr" target="_blank" rel="noopener noreferrer">
+        <span class="logo"><img src="logo_BK.png" alt="빌리지베이비" /></span>
+        <span>빌리지베이비 HR</span>
+      </a>
+      <button class="btn btn-ghost btn-pill btn-sm" id="logout-btn">잠그기</button>
+    </div>
+  </div>
 
   <div class="tabs">
     <button class="tab active" data-tab="board">캘린더</button>
@@ -305,7 +321,7 @@
       <div class="legend-item"><span class="dot-key yeouido"></span>여의도 (최대 19석)</div>
       <div class="legend-item"><span class="dot-key chungmuro"></span>충무로 (최대 13석)</div>
     </div>
-    <p class="sub" style="margin-bottom:18px;">팀별 기본 출근일이 자동으로 반영되어 있어요 (Biz Team 금·여의도 / Brand 화·목·충무로 / Commerce·M&amp;E 수·여의도 / Product 월·여의도). 필요하면 직접 등록·취소해서 조정하세요.</p>
+    <p class="hint">팀별 기본 출근일이 자동으로 반영되어 있어요 (Biz Team 금·여의도 / Brand 화·목·충무로 / Commerce·M&amp;E 수·여의도 / Product 월·여의도). 필요하면 직접 등록·취소해서 조정하세요.</p>
 
     <div class="month-nav">
       <div class="month-title" id="month-title"></div>
@@ -845,12 +861,22 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ---------- Password gate ----------
-function gateError(msg, showCreate){
-  const err = document.getElementById('gate-error');
-  err.textContent = msg;
-  err.style.display = msg ? 'block' : 'none';
-  document.getElementById('gate-create').style.display = showCreate ? 'block' : 'none';
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
 }
+
+function switchMode(mode){
+  document.getElementById('mode-enter').style.display = mode === 'enter' ? 'block' : 'none';
+  document.getElementById('mode-setup').style.display = mode === 'setup' ? 'block' : 'none';
+  showErr('gate-error', '');
+  showErr('setup-error', '');
+  if(mode === 'enter') document.getElementById('gate-pw').focus();
+  else document.getElementById('setup-pw').focus();
+}
+document.getElementById('to-setup').addEventListener('click', () => switchMode('setup'));
+document.getElementById('to-enter').addEventListener('click', () => switchMode('enter'));
 
 function enterBoard(){
   localStorage.setItem(SAVED_KEY, boardKey);
@@ -865,16 +891,17 @@ async function boardExists(){
   return snap.exists();
 }
 
+// 입장
 document.getElementById('gate-enter').addEventListener('click', async () => {
   const pw = document.getElementById('gate-pw').value;
-  if(!pw){ gateError('비밀번호를 입력해주세요.', false); return; }
-  gateError('', false);
+  if(!pw){ showErr('gate-error', '비밀번호를 입력해주세요.'); return; }
+  showErr('gate-error', '');
   boardKey = await sha256Hex('seatboard:' + pw);
   try{
     if(await boardExists()){ enterBoard(); }
-    else { gateError('입장할 수 없습니다.', true); }
+    else { showErr('gate-error', '등록되지 않은 비밀번호입니다. 오타가 아닌지 확인해주세요. 현황판을 처음 만드는 경우 아래 "비밀번호 설정하기"를 이용하세요.'); }
   }catch(e){
-    gateError('연결에 실패했어요. 잠시 후 다시 시도해주세요.', false);
+    showErr('gate-error', '연결에 실패했어요. 잠시 후 다시 시도해주세요.');
     console.error(e);
   }
 });
@@ -882,14 +909,32 @@ document.getElementById('gate-pw').addEventListener('keydown', e => {
   if(e.key === 'Enter') document.getElementById('gate-enter').click();
 });
 
-document.getElementById('gate-create-btn').addEventListener('click', async () => {
+// 최초 비밀번호 설정
+document.getElementById('setup-btn').addEventListener('click', async () => {
+  const pw = document.getElementById('setup-pw').value;
+  const pw2 = document.getElementById('setup-pw2').value;
+  if(!pw){ showErr('setup-error', '비밀번호를 입력해주세요.'); return; }
+  if(pw.length < 4){ showErr('setup-error', '비밀번호는 4자 이상으로 설정해주세요.'); return; }
+  if(pw !== pw2){ showErr('setup-error', '비밀번호가 서로 일치하지 않습니다.'); return; }
+  showErr('setup-error', '');
+  boardKey = await sha256Hex('seatboard:' + pw);
   try{
+    if(await boardExists()){
+      showErr('setup-error', '이미 이 비밀번호로 만들어진 현황판이 있습니다. "입장하기"로 접속해주세요.');
+      return;
+    }
     const seedObj = {};
     SEED_MEMBERS.forEach(m => { seedObj[uid()] = { name: m.name, team: m.team, type: '정규' }; });
     await update(boardRef(''), { created: true, members: seedObj });
     enterBoard();
-    showToast('새 현황판이 만들어졌습니다.');
-  }catch(e){ gateError('현황판 생성에 실패했어요. 다시 시도해주세요.', false); }
+    showToast('현황판이 만들어졌습니다. 비밀번호를 팀원들에게 공유해주세요.');
+  }catch(e){
+    showErr('setup-error', '현황판 생성에 실패했어요. 다시 시도해주세요.');
+    console.error(e);
+  }
+});
+document.getElementById('setup-pw2').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('setup-btn').click();
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
@@ -899,11 +944,6 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 
 // ---------- Init ----------
 (async function init(){
-  if(FIREBASE_CONFIG.apiKey.startsWith('PASTE')){
-    gateError('아직 서버 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.', false);
-    document.getElementById('gate-enter').disabled = true;
-    return;
-  }
   db = getDatabase(initializeApp(FIREBASE_CONFIG));
 
   const saved = localStorage.getItem(SAVED_KEY);
