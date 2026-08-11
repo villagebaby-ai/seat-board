@@ -967,19 +967,27 @@ function resetForm(){
   document.getElementById('add-btn').textContent = '추가';
 }
 
-// 일정·팀·근무기간이 바뀐 팀원의 현재 달 출근 기록을 새 기준으로 다시 채움
+// 일정·팀·근무기간이 바뀐 팀원의 출근 기록을 이번 달 포함 이후 모든 달에 새 기준으로 다시 채움
+// (지난달은 출근 이력 보존을 위해 그대로 두고, 아직 안 열어본 미래 달은 처음 열 때 자동 생성됨)
 async function resyncMemberMonth(memberId, mem){
-  if(!currentYm) return;
-  const [y, m] = currentYm.split('-').map(Number);
-  const updates = {};
-  attendance.filter(a => a.memberId === memberId).forEach(a => {
-    updates['attendance/' + currentYm + '/' + a.id] = null;
-  });
-  Object.entries(buildMemberMonth({ ...mem, id: memberId }, y, m)).forEach(([k, v]) => {
-    updates['attendance/' + currentYm + '/' + k] = v;
-  });
-  updates['monthMembers/' + currentYm + '/' + memberId] = true;
-  if(Object.keys(updates).length) await update(boardRef(''), updates);
+  const nowYm = ymKey(today.getFullYear(), today.getMonth());
+  const mm = (await get(boardRef('monthMembers'))).val() || {};
+  const mi = (await get(boardRef('monthInit'))).val() || {};
+  const months = [...new Set([...Object.keys(mm), ...Object.keys(mi), currentYm])]
+    .filter(ym => ym && ym >= nowYm).sort();
+  for(const ym of months){
+    const att = (await get(boardRef('attendance/' + ym))).val() || {};
+    const updates = {};
+    Object.entries(att).forEach(([k, a]) => {
+      if(a.memberId === memberId) updates['attendance/' + ym + '/' + k] = null;
+    });
+    const [y, m] = ym.split('-').map(Number);
+    Object.entries(buildMemberMonth({ ...mem, id: memberId }, y, m)).forEach(([k, v]) => {
+      updates['attendance/' + ym + '/' + k] = v;
+    });
+    updates['monthMembers/' + ym + '/' + memberId] = true;
+    if(Object.keys(updates).length) await update(boardRef(''), updates);
+  }
 }
 
 document.getElementById('add-btn').addEventListener('click', async () => {
