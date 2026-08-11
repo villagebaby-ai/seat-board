@@ -879,7 +879,10 @@ function renderAdminTable(){
   if(members.length === 0){ emptyEl.style.display = 'block'; return; }
   emptyEl.style.display = 'none';
 
-  members.slice().sort((a,b) => a.name.localeCompare(b.name,'ko')).forEach(m => {
+  members.slice().sort((a,b) => {
+    if(a.type !== b.type) return a.type === '인턴' ? 1 : -1; // 정규 먼저, 인턴은 하단
+    return a.name.localeCompare(b.name,'ko');
+  }).forEach(m => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${m.name}</td>
