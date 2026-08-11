@@ -208,8 +208,16 @@ a{color:inherit;text-decoration:none}
 .admin-panel{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-card);box-shadow:var(--sh-s);padding:22px}
 .panel-title{font-size:15px;font-weight:700;margin:0 0 4px}
 .panel-sub{font-size:13px;color:var(--gray);margin:0 0 18px}
-.form-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:22px}
+.form-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:14px}
 @media (max-width:700px){.form-grid{grid-template-columns:1fr 1fr}}
+.sched-box{border:1.4px dashed var(--gray-300);border-radius:var(--r-md);padding:14px;margin-bottom:14px}
+.sched-title{font-size:12.5px;font-weight:700;margin-bottom:10px}
+.sched-title span{font-weight:400;color:var(--gray);font-size:12px}
+.sched-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media (max-width:700px){.sched-grid{grid-template-columns:repeat(3,1fr)}}
+.sched-grid select{width:100%;height:36px;font-size:13px;padding:0 8px;border:1.4px solid var(--gray-300);border-radius:var(--r-md);background:var(--white);color:var(--gray-900);cursor:pointer}
+.form-actions{display:flex;justify-content:flex-end;margin-bottom:22px}
+.sched-cell{font-size:12px;color:var(--gray-700)}
 .field label{display:block;font-size:11.5px;color:var(--gray);margin-bottom:5px;font-weight:500;padding-left:2px}
 .field input[type=text],.field select{
   width:100%;height:40px;font-size:14px;padding:0 12px;
@@ -370,13 +378,24 @@ tbody tr:last-child td{border-bottom:none}
             <option value="인턴">인턴</option>
           </select>
         </div>
-        <div class="field">
-          <button class="btn btn-primary" id="add-btn" style="width:100%;">추가</button>
+      </div>
+
+      <div class="sched-box">
+        <div class="sched-title">고정 출근 일정 <span>(선택 — 설정하면 팀 기본 출근일 대신 이 일정이 적용됩니다)</span></div>
+        <div class="sched-grid">
+          <div class="field"><label>월</label><select class="sched-day" data-day="mon"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
+          <div class="field"><label>화</label><select class="sched-day" data-day="tue"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
+          <div class="field"><label>수</label><select class="sched-day" data-day="wed"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
+          <div class="field"><label>목</label><select class="sched-day" data-day="thu"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
+          <div class="field"><label>금</label><select class="sched-day" data-day="fri"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
         </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="add-btn">추가</button>
       </div>
 
       <table>
-        <thead><tr><th>이름</th><th>팀</th><th>소속</th><th></th></tr></thead>
+        <thead><tr><th>이름</th><th>팀</th><th>소속</th><th>고정 일정</th><th></th></tr></thead>
         <tbody id="member-table-body"></tbody>
       </table>
       <div id="empty-table" class="empty-table" style="display:none;">등록된 팀원이 없습니다. 위에서 추가해보세요.</div>
@@ -404,19 +423,26 @@ const FIREBASE_CONFIG = {
 const CAPACITY = { yeouido: 19, chungmuro: 13 };
 const OFFICE_LABEL = { yeouido: '여의도', chungmuro: '충무로' };
 const WEEKDAY_LABEL = ['일','월','화','수','목','금','토'];
+const DOW_KEYS = [null,'mon','tue','wed','thu','fri',null]; // getDay() → 일정 키
+const DAY_LABEL = { mon:'월', tue:'화', wed:'수', thu:'목', fri:'금' };
 const SAVED_KEY = 'seatboard:boardKey';
 
 function uid(prefix){ return (prefix||'m') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 // 현황판 최초 생성 시 채워지는 정규팀원 명단 (2026-08-11 기준 업로드 파일 기반)
+// 개인 고정 일정 (schedule): 있으면 팀 기본 출근일 대신 적용, 명단 관리에서 수정 가능
+const CEO_SCHED = { mon:'yeouido', tue:'chungmuro', wed:'yeouido', thu:'chungmuro' };
+const KYW_SCHED = { mon:'yeouido', tue:'yeouido', wed:'yeouido', thu:'yeouido', fri:'yeouido' };
+
 const SEED_MEMBERS = [
+  { name:'이정윤', team:'CEO', schedule: CEO_SCHED },
   { name:'이지현', team:'Biz Team' }, { name:'정채영', team:'Biz Team' }, { name:'정혜민', team:'Biz Team' },
   { name:'박나영', team:'Brand' }, { name:'안선우', team:'Brand' }, { name:'이서현', team:'Brand' },
   { name:'이우리', team:'Brand' }, { name:'임희선', team:'Brand' }, { name:'임희진', team:'Brand' },
   { name:'이종민', team:'Brand' }, { name:'이혜진', team:'Brand' },
   { name:'김유리', team:'Commerce' }, { name:'김태윤', team:'Commerce' }, { name:'이소현', team:'Commerce' },
   { name:'조수민', team:'Commerce' }, { name:'채지민', team:'Commerce' },
-  { name:'박소영', team:'M&E' }, { name:'박고은', team:'M&E' }, { name:'김영웅', team:'M&E' },
+  { name:'박소영', team:'M&E' }, { name:'박고은', team:'M&E' }, { name:'김영웅', team:'M&E', schedule: KYW_SCHED },
   { name:'이혜린', team:'M&E' }, { name:'이상화', team:'M&E' },
   { name:'안영주', team:'Product' }, { name:'문혁은', team:'Product' }, { name:'유진수', team:'Product' },
   { name:'임소정', team:'Product' }, { name:'정수형', team:'Product' }, { name:'최제혁', team:'Product' },
@@ -464,6 +490,15 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
+// 개인 고정 일정이 있으면 그 일정, 없으면 팀 기본 출근일
+function effectiveOffice(mem, dow){
+  if(mem.schedule) return mem.schedule[DOW_KEYS[dow]] || null;
+  const rules = TEAM_DEFAULTS[mem.team];
+  if(!rules) return null;
+  const r = rules.find(rule => rule.dow === dow);
+  return r ? r.office : null;
+}
+
 function generateDefaultAttendance(y, m){
   const records = {};
   const daysInMonth = new Date(y, m+1, 0).getDate();
@@ -472,13 +507,8 @@ function generateDefaultAttendance(y, m){
     if(isWeekend(dow)) continue;
     const key = dateKey(y, m, d);
     members.forEach(mem => {
-      const rules = TEAM_DEFAULTS[mem.team];
-      if(!rules) return;
-      rules.forEach(rule => {
-        if(rule.dow === dow){
-          records[uid('a')] = { memberId: mem.id, date: key, office: rule.office };
-        }
-      });
+      const office = effectiveOffice(mem, dow);
+      if(office) records[uid('a')] = { memberId: mem.id, date: key, office };
     });
   }
   return records;
@@ -488,7 +518,7 @@ function generateDefaultAttendance(y, m){
 function startSubscriptions(){
   onValue(boardRef('members'), snap => {
     const v = snap.val() || {};
-    members = Object.entries(v).map(([id, m]) => ({ id, name: m.name, team: m.team || '', type: m.type || '정규' }));
+    members = Object.entries(v).map(([id, m]) => ({ id, name: m.name, team: m.team || '', type: m.type || '정규', schedule: m.schedule || null }));
     membersReady = true;
     renderAdminTable();
     renderCalendar();
@@ -686,12 +716,15 @@ function renderDetail(){
     } else {
       const row = document.createElement('div');
       row.className = 'name-chip-row';
-      recs.forEach(r => {
+      recs.slice().sort((a,b) => {
+        const ma = memberName(a.memberId), mb = memberName(b.memberId);
+        return (ma ? ma.name : '').localeCompare(mb ? mb.name : '', 'ko');
+      }).forEach(r => {
         const m = memberName(r.memberId);
         if(!m) return;
         const chip = document.createElement('div');
         chip.className = 'name-chip';
-        chip.innerHTML = `${m.name} <span class="badge">${m.type}</span>`;
+        chip.innerHTML = `${m.name}${m.team ? ' · ' + m.team : ''} <span class="badge">${m.type}</span>`;
         const x = document.createElement('button');
         x.className = 'x-btn';
         x.textContent = '×';
@@ -717,7 +750,8 @@ function renderDetail(){
   const checkin = document.createElement('div');
   checkin.className = 'checkin-box';
 
-  const availableMembers = members.filter(m => !registeredIds.has(m.id));
+  const availableMembers = members.filter(m => !registeredIds.has(m.id))
+    .sort((a,b) => a.name.localeCompare(b.name, 'ko'));
 
   if(members.length === 0){
     checkin.innerHTML = `<div class="weekend-note">먼저 "명단 관리" 탭에서 팀원을 등록해주세요.</div>`;
@@ -799,6 +833,7 @@ function renderAdminTable(){
       <td>${m.name}</td>
       <td>${m.team || '-'}</td>
       <td><span class="type-pill ${m.type}">${m.type}</span></td>
+      <td class="sched-cell">${schedSummary(m.schedule)}</td>
       <td>
         <div class="row-actions">
           <button class="icon-btn" data-action="edit" data-id="${m.id}">수정</button>
@@ -827,9 +862,31 @@ function renderAdminTable(){
       document.getElementById('f-name').value = m.name;
       document.getElementById('f-team').value = m.team || '';
       document.getElementById('f-type').value = m.type;
+      fillScheduleForm(m.schedule);
       document.getElementById('add-btn').textContent = '수정 완료';
       document.getElementById('f-name').scrollIntoView({ behavior:'smooth', block:'center' });
     });
+  });
+}
+
+function schedSummary(s){
+  if(!s) return '-';
+  const by = { yeouido: [], chungmuro: [] };
+  ['mon','tue','wed','thu','fri'].forEach(k => { if(s[k]) by[s[k]].push(DAY_LABEL[k]); });
+  const parts = [];
+  if(by.yeouido.length) parts.push(by.yeouido.join('·') + ' 여의도');
+  if(by.chungmuro.length) parts.push(by.chungmuro.join('·') + ' 충무로');
+  return parts.length ? parts.join(' / ') : '-';
+}
+
+function readScheduleForm(){
+  const s = {};
+  document.querySelectorAll('.sched-day').forEach(sel => { if(sel.value) s[sel.dataset.day] = sel.value; });
+  return Object.keys(s).length ? s : null;
+}
+function fillScheduleForm(sched){
+  document.querySelectorAll('.sched-day').forEach(sel => {
+    sel.value = sched && sched[sel.dataset.day] ? sched[sel.dataset.day] : '';
   });
 }
 
@@ -838,7 +895,26 @@ function resetForm(){
   document.getElementById('f-name').value = '';
   document.getElementById('f-team').value = '';
   document.getElementById('f-type').value = '정규';
+  fillScheduleForm(null);
   document.getElementById('add-btn').textContent = '추가';
+}
+
+// 고정 일정이 바뀐 팀원의 현재 달 출근 기록을 새 일정 기준으로 다시 채움
+async function resyncMemberMonth(memberId, mem){
+  if(!currentYm) return;
+  const [y, m] = currentYm.split('-').map(Number);
+  const updates = {};
+  attendance.filter(a => a.memberId === memberId).forEach(a => {
+    updates['attendance/' + currentYm + '/' + a.id] = null;
+  });
+  const daysInMonth = new Date(y, m, 0).getDate();
+  for(let d=1; d<=daysInMonth; d++){
+    const dow = new Date(y, m-1, d).getDay();
+    if(isWeekend(dow)) continue;
+    const office = effectiveOffice(mem, dow);
+    if(office) updates['attendance/' + currentYm + '/' + uid('a')] = { memberId, date: dateKey(y, m-1, d), office };
+  }
+  if(Object.keys(updates).length) await update(boardRef(''), updates);
 }
 
 document.getElementById('add-btn').addEventListener('click', async () => {
@@ -846,14 +922,25 @@ document.getElementById('add-btn').addEventListener('click', async () => {
   const team = document.getElementById('f-team').value.trim();
   const type = document.getElementById('f-type').value;
   if(!name){ showToast('이름을 입력해주세요.'); return; }
+  const schedule = readScheduleForm();
 
   try{
+    let id = editingId;
+    let prevSched = null;
+    const data = { name, team, type };
+    if(schedule) data.schedule = schedule;
     if(editingId){
-      await update(boardRef('members/' + editingId), { name, team, type });
+      const prev = members.find(x => x.id === editingId);
+      prevSched = prev && prev.schedule ? prev.schedule : null;
+      await set(boardRef('members/' + editingId), data);
       showToast('수정되었습니다.');
     } else {
-      await set(boardRef('members/' + uid()), { name, team, type });
+      id = uid();
+      await set(boardRef('members/' + id), data);
       showToast('추가되었습니다.');
+    }
+    if(JSON.stringify(schedule) !== JSON.stringify(prevSched)){
+      await resyncMemberMonth(id, { name, team, schedule });
     }
     resetForm();
   }catch(e){ showToast('저장에 실패했어요. 다시 시도해주세요.'); }
@@ -892,7 +979,59 @@ function enterBoard(){
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   renderMonthTitle();
-  startSubscriptions();
+  runMigrations().finally(startSubscriptions);
+}
+
+// 기존 현황판 데이터 보정 (1회): 이정윤(CEO) 등록 + 이정윤·김영웅 고정 일정 적용
+async function runMigrations(){
+  try{
+    const flag = await get(boardRef('meta/migrSched1'));
+    if(flag.exists()) return;
+    await set(boardRef('meta/migrSched1'), true);
+
+    const mems = (await get(boardRef('members'))).val() || {};
+    const updates = {};
+    const targets = []; // [memberId, schedule]
+
+    let ceoId = Object.keys(mems).find(id => mems[id].name === '이정윤');
+    if(!ceoId){
+      ceoId = uid();
+      updates['members/' + ceoId] = { name:'이정윤', team:'CEO', type:'정규', schedule: CEO_SCHED };
+      targets.push([ceoId, CEO_SCHED]);
+    } else if(!mems[ceoId].schedule){
+      updates['members/' + ceoId + '/schedule'] = CEO_SCHED;
+      targets.push([ceoId, CEO_SCHED]);
+    }
+
+    const kywId = Object.keys(mems).find(id => mems[id].name === '김영웅');
+    if(kywId && !mems[kywId].schedule){
+      updates['members/' + kywId + '/schedule'] = KYW_SCHED;
+      targets.push([kywId, KYW_SCHED]);
+    }
+
+    // 이미 기본 출근이 생성된 달에도 두 사람의 고정 일정을 채워 넣음 (기존 기록은 유지)
+    if(targets.length){
+      const months = Object.keys((await get(boardRef('monthInit'))).val() || {});
+      for(const ym of months){
+        const att = (await get(boardRef('attendance/' + ym))).val() || {};
+        const [y, m] = ym.split('-').map(Number);
+        const daysInMonth = new Date(y, m, 0).getDate();
+        targets.forEach(([mid, sched]) => {
+          const hasDate = new Set(Object.values(att).filter(a => a.memberId === mid).map(a => a.date));
+          for(let d=1; d<=daysInMonth; d++){
+            const dow = new Date(y, m-1, d).getDay();
+            const office = sched[DOW_KEYS[dow]];
+            if(!office) continue;
+            const dk = dateKey(y, m-1, d);
+            if(hasDate.has(dk)) continue;
+            updates['attendance/' + ym + '/' + uid('a')] = { memberId: mid, date: dk, office };
+          }
+        });
+      }
+    }
+
+    if(Object.keys(updates).length) await update(boardRef(''), updates);
+  }catch(e){ console.error(e); }
 }
 
 async function boardExists(){
@@ -933,8 +1072,12 @@ document.getElementById('setup-btn').addEventListener('click', async () => {
       return;
     }
     const seedObj = {};
-    SEED_MEMBERS.forEach(m => { seedObj[uid()] = { name: m.name, team: m.team, type: '정규' }; });
-    await update(boardRef(''), { created: true, members: seedObj });
+    SEED_MEMBERS.forEach(m => {
+      const rec = { name: m.name, team: m.team, type: '정규' };
+      if(m.schedule) rec.schedule = m.schedule;
+      seedObj[uid()] = rec;
+    });
+    await update(boardRef(''), { created: true, members: seedObj, 'meta/migrSched1': true });
     enterBoard();
     showToast('현황판이 만들어졌습니다. 비밀번호를 팀원들에게 공유해주세요.');
   }catch(e){
