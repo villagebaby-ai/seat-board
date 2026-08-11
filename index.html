@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>자율좌석 현황판</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper: #F6F4EF;
+    --paper-raised: #FFFFFF;
+    --ink: #22252B;
+    --ink-soft: #62655F;
+    --ink-faint: #A8A399;
+    --line: #DAD5C9;
+    --yeouido: #1D6F8C;
+    --yeouido-soft: #E4EEF1;
+    --chungmuro: #B5562D;
+    --chungmuro-soft: #F3E7DD;
+    --alert: #C23B3B;
+    --alert-soft: #F7E4E1;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Pretendard', -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:36px 20px 80px;}
+
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{ font-size:clamp(26px, 4vw, 34px); font-weight:800; margin:0 0 8px; letter-spacing:-0.01em; }
+  .sub{color:var(--ink-soft); font-size:14.5px; margin:0;}
+
+  .tabs{ display:flex; gap:4px; margin:26px 0 20px; border-bottom:1px solid var(--line); }
+  .tab{
+    font-family:'Pretendard'; font-size:14.5px; font-weight:600; color:var(--ink-soft);
+    background:none; border:none; padding:10px 4px; margin-right:22px; cursor:pointer;
+    position:relative; top:1px;
+  }
+  .tab.active{color:var(--ink);}
+  .tab.active::after{ content:""; position:absolute; left:0;right:0;bottom:-1px; height:2px; background:var(--ink); }
+
+  .legend{display:flex; gap:18px; margin-bottom:18px; flex-wrap:wrap; align-items:center;}
+  .legend-item{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft);}
+  .dot-key{width:10px; height:10px; border-radius:50%;}
+  .dot-key.yeouido{background:var(--yeouido);}
+  .dot-key.chungmuro{background:var(--chungmuro);}
+
+  /* Month navigator */
+  .month-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .month-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:17px; font-weight:600; letter-spacing:0.02em;
+  }
+  .nav-btns{display:flex; gap:8px;}
+  .nav-btn{
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper-raised); cursor:pointer; font-size:14px; color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .today-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
+    border:1px solid var(--line); background:var(--paper-raised); border-radius:8px;
+    padding:0 10px; cursor:pointer; color:var(--ink-soft);
+  }
+  .today-btn:hover{ color:var(--ink); }
+
+  /* Calendar grid */
+  .weekday-row{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:6px;
+  }
+  .weekday-row div{
+    text-align:center; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:var(--ink-faint); font-weight:600; letter-spacing:0.05em;
+  }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+  .cal-cell{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    min-height:86px;
+    padding:8px 8px 10px;
+    cursor:pointer;
+    display:flex; flex-direction:column; gap:6px;
+    transition:box-shadow .12s ease, transform .12s ease;
+  }
+  .cal-cell:hover{ box-shadow:0 3px 10px rgba(0,0,0,.06); transform:translateY(-1px); }
+  .cal-cell.out-month{ opacity:.38; }
+  .cal-cell.weekend{ background:#F0EEE7; cursor:default; }
+  .cal-cell.weekend:hover{ box-shadow:none; transform:none; }
+  .cal-cell.selected{ border-color:var(--ink); box-shadow:0 0 0 1.5px var(--ink) inset; }
+  .cal-cell.is-today .cal-date-num{ color:var(--ink); background:var(--ink); color:var(--paper); }
+  .cal-date-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600;
+    width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  }
+  .cal-badges{ display:flex; flex-direction:column; gap:3px; margin-top:auto; }
+  .cal-badge{
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:600;
+    padding:2px 6px; border-radius:5px;
+  }
+  .cal-badge.yeouido{ background:var(--yeouido-soft); color:var(--yeouido); }
+  .cal-badge.chungmuro{ background:var(--chungmuro-soft); color:var(--chungmuro); }
+  .cal-badge.over{ background:var(--alert-soft); color:var(--alert); }
+  @media (max-width:720px){
+    .cal-grid, .weekday-row{ grid-template-columns:repeat(7,1fr); gap:5px; }
+    .cal-cell{ min-height:64px; padding:6px; }
+    .cal-badge{ font-size:9px; padding:1px 4px; }
+  }
+
+  /* Detail panel */
+  .detail{
+    margin-top:24px;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .detail-date{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .detail-title{ font-size:18px; font-weight:800; margin-bottom:18px; }
+
+  .office-panels{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:22px; }
+  @media (max-width:640px){ .office-panels{ grid-template-columns:1fr; } }
+  .office-panel{ border-radius:12px; padding:16px; }
+  .office-panel.yeouido{ background:var(--yeouido-soft); }
+  .office-panel.chungmuro{ background:var(--chungmuro-soft); }
+  .op-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .op-name{ font-size:13.5px; font-weight:800; }
+  .op-name.yeouido{ color:var(--yeouido); }
+  .op-name.chungmuro{ color:var(--chungmuro); }
+  .op-count{ font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; }
+  .op-count.over{ color:var(--alert); }
+
+  .seat-grid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:4px; margin-bottom:12px; }
+  .seat-dot{ width:100%; aspect-ratio:1; border-radius:50%; border:1.4px solid currentColor; background:transparent; }
+  .seat-dot.filled.yeouido{ background:var(--yeouido); border-color:var(--yeouido); }
+  .seat-dot.filled.chungmuro{ background:var(--chungmuro); border-color:var(--chungmuro); }
+  .seat-dot.empty.yeouido{ color:var(--yeouido); opacity:.4; }
+  .seat-dot.empty.chungmuro{ color:var(--chungmuro); opacity:.4; }
+
+  .over-note{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--alert); font-weight:600; margin-bottom:10px; }
+
+  .name-chip-row{ display:flex; flex-wrap:wrap; gap:7px; }
+  .name-chip{
+    font-size:12.5px; padding:5px 6px 5px 10px; border-radius:999px;
+    background:var(--paper-raised); border:1px solid var(--line);
+    display:flex; align-items:center; gap:6px;
+  }
+  .name-chip .badge{
+    font-family:'IBM Plex Mono', monospace; font-size:9.5px; padding:1px 5px;
+    border-radius:5px; background:var(--line); color:var(--ink-soft);
+  }
+  .name-chip .x-btn{
+    width:16px; height:16px; border-radius:50%; border:none; background:var(--paper);
+    color:var(--ink-soft); font-size:11px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .name-chip .x-btn:hover{ background:var(--alert-soft); color:var(--alert); }
+  .empty-note{ color:var(--ink-soft); font-size:13px; }
+
+  /* Self check-in */
+  .checkin-box{
+    border-top:1px dashed var(--line);
+    padding-top:18px; margin-top:4px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:end;
+  }
+  .checkin-field label{ display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
+  .checkin-field select{
+    font-family:'Pretendard'; font-size:14px; padding:9px 10px;
+    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
+    min-width:150px;
+  }
+  .weekend-note{ color:var(--ink-soft); font-size:13.5px; }
+
+  .btn{ font-family:'Pretendard'; font-weight:700; font-size:13.5px; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; }
+  .btn-primary{ background:var(--ink); color:var(--paper); }
+  .btn-primary:hover{ opacity:.88; }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* Admin roster */
+  .admin-panel{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
+  .panel-title{ font-size:15px; font-weight:800; margin:0 0 4px; }
+  .panel-sub{ font-size:13px; color:var(--ink-soft); margin:0 0 18px; }
+  .form-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:22px; }
+  @media (max-width:700px){ .form-grid{ grid-template-columns:1fr 1fr; } }
+  .field label{ display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
+  .field input[type=text], .field select{
+    width:100%; font-family:'Pretendard'; font-size:14px; padding:9px 10px;
+    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  thead th{
+    text-align:left; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.04em;
+    color:var(--ink-soft); text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--line);
+  }
+  tbody td{ padding:10px; border-bottom:1px solid var(--line); }
+  tbody tr:last-child td{ border-bottom:none; }
+  .type-pill{ font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; }
+  .type-pill.정규{ background:#E4EEF1; color:var(--yeouido); }
+  .type-pill.인턴{ background:#F3E7DD; color:var(--chungmuro); }
+  .icon-btn{
+    border:1px solid var(--line); background:var(--paper); border-radius:6px; font-size:12px;
+    padding:5px 9px; cursor:pointer; color:var(--ink-soft);
+  }
+  .icon-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .empty-table{ padding:30px 10px; text-align:center; color:var(--ink-soft); font-size:13.5px; }
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+  .loading{ color:var(--ink-soft); font-size:13.5px; padding:20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">VILLAGE BABY · HR OPS</div>
+    <h1>자율좌석 현황판</h1>
+    <p class="sub">여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="board">캘린더</button>
+    <button class="tab" data-tab="admin">명단 관리</button>
+  </div>
+
+  <div id="tab-board">
+    <div class="legend">
+      <div class="legend-item"><span class="dot-key yeouido"></span>여의도 (최대 19석)</div>
+      <div class="legend-item"><span class="dot-key chungmuro"></span>충무로 (최대 13석)</div>
+    </div>
+    <p class="sub" style="margin-bottom:18px;">팀별 기본 출근일이 자동으로 반영되어 있어요 (Biz Team 금·여의도 / Brand 화·목·충무로 / Commerce·M&amp;E 수·여의도 / Product 월·여의도). 필요하면 직접 등록·취소해서 조정하세요.</p>
+
+    <div class="month-nav">
+      <div class="month-title" id="month-title"></div>
+      <div class="nav-btns">
+        <button class="today-btn" id="today-btn">오늘</button>
+        <button class="nav-btn" id="prev-btn">‹</button>
+        <button class="nav-btn" id="next-btn">›</button>
+      </div>
+    </div>
+
+    <div class="weekday-row">
+      <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+    </div>
+    <div id="cal-grid" class="cal-grid"></div>
+
+    <div id="detail" class="detail" style="display:none;"></div>
+  </div>
+
+  <div id="tab-admin" style="display:none;">
+    <div class="admin-panel">
+      <p class="panel-title">팀원 명단 관리</p>
+      <p class="panel-sub">여기서 등록한 이름이 캘린더의 출근 등록 드롭다운에 나타납니다. 사무실·날짜별 출근은 캘린더 탭에서 팀원이 직접 등록해요.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>이름</label>
+          <input type="text" id="f-name" placeholder="예: 김루시아" />
+        </div>
+        <div class="field">
+          <label>팀</label>
+          <input type="text" id="f-team" placeholder="예: Brand" />
+        </div>
+        <div class="field">
+          <label>소속</label>
+          <select id="f-type">
+            <option value="정규">정규팀원</option>
+            <option value="인턴">인턴</option>
+          </select>
+        </div>
+        <div class="field">
+          <button class="btn btn-primary" id="add-btn" style="width:100%;">추가</button>
+        </div>
+      </div>
+
+      <table>
+        <thead><tr><th>이름</th><th>팀</th><th>소속</th><th></th></tr></thead>
+        <tbody id="member-table-body"></tbody>
+      </table>
+      <div id="empty-table" class="empty-table" style="display:none;">등록된 팀원이 없습니다. 위에서 추가해보세요.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// GitHub Pages 등 일반 웹 환경에는 window.storage가 없으므로 localStorage로 대체
+// (localStorage는 브라우저별 저장 — 다른 사람과 데이터가 공유되지는 않음)
+if(!window.storage){
+  window.storage = {
+    async get(key){ return { value: localStorage.getItem(key) }; },
+    async set(key, value){ localStorage.setItem(key, value); return {}; },
+  };
+}
+
+const CAPACITY = { yeouido: 19, chungmuro: 13 };
+const OFFICE_LABEL = { yeouido: '여의도', chungmuro: '충무로' };
+const WEEKDAY_LABEL = ['일','월','화','수','목','금','토'];
+
+function uid(prefix){ return (prefix||'m') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// 최초 1회, 저장된 명단이 없을 때만 채워지는 정규팀원 명단 (2026-08-11 기준 업로드 파일 기반)
+const SEED_MEMBERS = [
+  { name:'이지현', team:'Biz Team' }, { name:'정채영', team:'Biz Team' }, { name:'정혜민', team:'Biz Team' },
+  { name:'박나영', team:'Brand' }, { name:'안선우', team:'Brand' }, { name:'이서현', team:'Brand' },
+  { name:'이우리', team:'Brand' }, { name:'임희선', team:'Brand' }, { name:'임희진', team:'Brand' },
+  { name:'이종민', team:'Brand' }, { name:'이혜진', team:'Brand' },
+  { name:'김유리', team:'Commerce' }, { name:'김태윤', team:'Commerce' }, { name:'이소현', team:'Commerce' },
+  { name:'조수민', team:'Commerce' }, { name:'채지민', team:'Commerce' },
+  { name:'박소영', team:'M&E' }, { name:'박고은', team:'M&E' }, { name:'김영웅', team:'M&E' },
+  { name:'이혜린', team:'M&E' }, { name:'이상화', team:'M&E' },
+  { name:'안영주', team:'Product' }, { name:'문혁은', team:'Product' }, { name:'유진수', team:'Product' },
+  { name:'임소정', team:'Product' }, { name:'정수형', team:'Product' }, { name:'최제혁', team:'Product' },
+  { name:'윤혜준', team:'Product' }, { name:'안연주', team:'GA' },
+].map(m => ({ id: uid(), name: m.name, team: m.team, type: '정규' }));
+
+let members = [];
+let today = new Date();
+let viewYear = today.getFullYear();
+let viewMonth = today.getMonth(); // 0-indexed
+let selectedDate = null; // 'YYYY-MM-DD'
+let attendance = []; // records for the currently viewed month: {id, memberId, date, office}
+let editingId = null;
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function dateKey(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+function monthKey(y,m){ return `attendance:${y}-${pad2(m+1)}`; }
+function isWeekend(dow){ return dow === 0 || dow === 6; }
+
+// 팀별 기본 출근 규칙 (getDay() 기준: 월=1, 화=2, 수=3, 목=4, 금=5)
+const TEAM_DEFAULTS = {
+  'Biz Team': [ { dow: 5, office: 'yeouido' } ],                                   // 금요일 여의도
+  'Brand':    [ { dow: 2, office: 'chungmuro' }, { dow: 4, office: 'chungmuro' } ], // 화, 목 충무로
+  'Commerce': [ { dow: 3, office: 'yeouido' } ],                                   // 수요일 여의도
+  'M&E':      [ { dow: 3, office: 'yeouido' } ],                                   // 수요일 여의도
+  'Product':  [ { dow: 1, office: 'yeouido' } ],                                   // 월요일 여의도
+};
+
+function generateDefaultAttendance(y, m){
+  const records = [];
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  for(let d=1; d<=daysInMonth; d++){
+    const dow = new Date(y, m, d).getDay();
+    if(isWeekend(dow)) continue;
+    const key = dateKey(y, m, d);
+    members.forEach(mem => {
+      const rules = TEAM_DEFAULTS[mem.team];
+      if(!rules) return;
+      rules.forEach(rule => {
+        if(rule.dow === dow){
+          records.push({ id: uid('a'), memberId: mem.id, date: key, office: rule.office });
+        }
+      });
+    });
+  }
+  return records;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ---------- Members ----------
+async function loadMembers(){
+  let stored = null;
+  try{
+    const res = await window.storage.get('members', true);
+    stored = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){ stored = null; }
+
+  if(stored === null){
+    members = SEED_MEMBERS;
+    await saveMembers();
+  } else {
+    // 이전 버전 데이터(office/days 필드)가 있어도 이름/팀/소속만 사용
+    members = stored.map(m => ({ id: m.id, name: m.name, team: m.team || '', type: m.type || '정규' }));
+  }
+}
+async function saveMembers(){
+  try{ await window.storage.set('members', JSON.stringify(members), true); }
+  catch(e){ showToast('명단 저장에 실패했어요.'); }
+}
+
+// ---------- Attendance ----------
+async function loadAttendanceForMonth(y,m){
+  let stored = null;
+  try{
+    const res = await window.storage.get(monthKey(y,m), true);
+    stored = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){
+    stored = null;
+  }
+  if(stored === null){
+    // 이 달에 저장된 기록이 없으면 팀별 기본 출근 규칙으로 초기 생성
+    attendance = generateDefaultAttendance(y, m);
+    await saveAttendanceForMonth(y, m);
+  } else {
+    attendance = stored;
+  }
+}
+async function saveAttendanceForMonth(y,m){
+  try{ await window.storage.set(monthKey(y,m), JSON.stringify(attendance), true); }
+  catch(e){ showToast('출근 등록 저장에 실패했어요.'); }
+}
+
+function recordsForDate(date){
+  return attendance.filter(a => a.date === date);
+}
+function recordsForDateOffice(date, office){
+  return recordsForDate(date).filter(a => a.office === office);
+}
+function memberName(id){
+  const m = members.find(x => x.id === id);
+  return m ? m : null;
+}
+
+// ---------- Calendar rendering ----------
+function renderMonthTitle(){
+  document.getElementById('month-title').textContent = `${viewYear}년 ${viewMonth+1}월`;
+}
+
+function renderCalendar(){
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const startDow = firstOfMonth.getDay(); // 0=Sun
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+  const cells = [];
+  // leading (prev month)
+  for(let i=0;i<startDow;i++){
+    const d = daysInPrevMonth - startDow + 1 + i;
+    const pm = viewMonth === 0 ? 11 : viewMonth - 1;
+    const py = viewMonth === 0 ? viewYear - 1 : viewYear;
+    cells.push({ day:d, y:py, m:pm, outMonth:true });
+  }
+  // current month
+  for(let d=1; d<=daysInMonth; d++){
+    cells.push({ day:d, y:viewYear, m:viewMonth, outMonth:false });
+  }
+  // trailing (next month) to complete final week row
+  let trail = 1;
+  while(cells.length % 7 !== 0){
+    const nm = viewMonth === 11 ? 0 : viewMonth + 1;
+    const ny = viewMonth === 11 ? viewYear + 1 : viewYear;
+    cells.push({ day:trail, y:ny, m:nm, outMonth:true });
+    trail++;
+  }
+
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  cells.forEach(c => {
+    const key = dateKey(c.y, c.m, c.day);
+    const dow = new Date(c.y, c.m, c.day).getDay();
+    const weekend = isWeekend(dow);
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (c.outMonth ? ' out-month' : '') + (weekend ? ' weekend' : '') +
+      (key === todayKey ? ' is-today' : '') + (key === selectedDate ? ' selected' : '');
+
+    const numEl = document.createElement('div');
+    numEl.className = 'cal-date-num';
+    numEl.textContent = c.day;
+    cell.appendChild(numEl);
+
+    if(!weekend){
+      const badges = document.createElement('div');
+      badges.className = 'cal-badges';
+      ['yeouido','chungmuro'].forEach(office => {
+        const used = recordsForDateOffice(key, office).length;
+        if(used === 0) return;
+        const cap = CAPACITY[office];
+        const over = used > cap;
+        const b = document.createElement('div');
+        b.className = 'cal-badge ' + office + (over ? ' over' : '');
+        b.textContent = `${OFFICE_LABEL[office][0]} ${used}/${cap}`;
+        badges.appendChild(b);
+      });
+      cell.appendChild(badges);
+
+      cell.addEventListener('click', () => {
+        selectedDate = key;
+        renderCalendar();
+        renderDetail();
+      });
+    }
+
+    grid.appendChild(cell);
+  });
+}
+
+function fmtDetailDate(key){
+  const [y,m,d] = key.split('-').map(Number);
+  const dow = new Date(y, m-1, d).getDay();
+  return `${y}년 ${m}월 ${d}일 (${WEEKDAY_LABEL[dow]})`;
+}
+
+function renderDetail(){
+  const detailEl = document.getElementById('detail');
+  if(!selectedDate){ detailEl.style.display = 'none'; return; }
+  detailEl.style.display = 'block';
+
+  const registeredIds = new Set(recordsForDate(selectedDate).map(a => a.memberId));
+
+  detailEl.innerHTML = '';
+  const dateEl = document.createElement('div');
+  dateEl.className = 'detail-date';
+  dateEl.textContent = '선택한 날짜';
+  detailEl.appendChild(dateEl);
+  const titleEl = document.createElement('div');
+  titleEl.className = 'detail-title';
+  titleEl.textContent = fmtDetailDate(selectedDate);
+  detailEl.appendChild(titleEl);
+
+  const panels = document.createElement('div');
+  panels.className = 'office-panels';
+
+  ['yeouido','chungmuro'].forEach(office => {
+    const recs = recordsForDateOffice(selectedDate, office);
+    const cap = CAPACITY[office];
+    const used = recs.length;
+    const over = used > cap;
+
+    const panel = document.createElement('div');
+    panel.className = 'office-panel ' + office;
+
+    const top = document.createElement('div');
+    top.className = 'op-top';
+    top.innerHTML = `<span class="op-name ${office}">${OFFICE_LABEL[office]}</span>
+      <span class="op-count ${over?'over':''}">${used}/${cap}</span>`;
+    panel.appendChild(top);
+
+    const grid = document.createElement('div');
+    grid.className = 'seat-grid';
+    const filled = Math.min(used, cap);
+    for(let i=0;i<cap;i++){
+      const dot = document.createElement('div');
+      dot.className = 'seat-dot ' + office + (i < filled ? ' filled' : ' empty');
+      grid.appendChild(dot);
+    }
+    panel.appendChild(grid);
+
+    if(over){
+      const note = document.createElement('div');
+      note.className = 'over-note';
+      note.textContent = `정원 초과 +${used - cap}명`;
+      panel.appendChild(note);
+    }
+
+    if(recs.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty-note';
+      empty.textContent = '등록된 팀원이 없습니다.';
+      panel.appendChild(empty);
+    } else {
+      const row = document.createElement('div');
+      row.className = 'name-chip-row';
+      recs.forEach(r => {
+        const m = memberName(r.memberId);
+        if(!m) return;
+        const chip = document.createElement('div');
+        chip.className = 'name-chip';
+        chip.innerHTML = `${m.name} <span class="badge">${m.type}</span>`;
+        const x = document.createElement('button');
+        x.className = 'x-btn';
+        x.textContent = '×';
+        x.title = '출근 취소';
+        x.addEventListener('click', async () => {
+          attendance = attendance.filter(a => a.id !== r.id);
+          await saveAttendanceForMonth(viewYear, viewMonth);
+          renderCalendar();
+          renderDetail();
+          showToast(`${m.name}님의 출근이 취소되었습니다.`);
+        });
+        chip.appendChild(x);
+        row.appendChild(chip);
+      });
+      panel.appendChild(row);
+    }
+
+    panels.appendChild(panel);
+  });
+
+  detailEl.appendChild(panels);
+
+  // Self check-in box
+  const checkin = document.createElement('div');
+  checkin.className = 'checkin-box';
+
+  const availableMembers = members.filter(m => !registeredIds.has(m.id));
+
+  if(members.length === 0){
+    checkin.innerHTML = `<div class="weekend-note">먼저 "명단 관리" 탭에서 팀원을 등록해주세요.</div>`;
+  } else {
+    const nameField = document.createElement('div');
+    nameField.className = 'checkin-field';
+    nameField.innerHTML = `<label>이름</label>
+      <select id="ci-name">
+        ${availableMembers.length === 0
+          ? `<option value="">전원 등록 완료</option>`
+          : availableMembers.map(m => `<option value="${m.id}">${m.name}${m.team ? ' · '+m.team : ''}</option>`).join('')}
+      </select>`;
+    checkin.appendChild(nameField);
+
+    const officeField = document.createElement('div');
+    officeField.className = 'checkin-field';
+    officeField.innerHTML = `<label>사무실</label>
+      <select id="ci-office">
+        <option value="yeouido">여의도</option>
+        <option value="chungmuro">충무로</option>
+      </select>`;
+    checkin.appendChild(officeField);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary';
+    btn.textContent = '출근 등록';
+    btn.disabled = availableMembers.length === 0;
+    btn.addEventListener('click', async () => {
+      const memberId = document.getElementById('ci-name').value;
+      const office = document.getElementById('ci-office').value;
+      if(!memberId) return;
+      attendance.push({ id: uid('a'), memberId, date: selectedDate, office });
+      await saveAttendanceForMonth(viewYear, viewMonth);
+      renderCalendar();
+      renderDetail();
+      const m = memberName(memberId);
+      showToast(`${m ? m.name : ''}님 ${OFFICE_LABEL[office]} 출근이 등록되었습니다.`);
+    });
+    checkin.appendChild(btn);
+  }
+
+  detailEl.appendChild(checkin);
+}
+
+// ---------- Month navigation ----------
+async function goToMonth(y, m){
+  viewYear = y; viewMonth = m;
+  renderMonthTitle();
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '<div class="loading">불러오는 중…</div>';
+  await loadAttendanceForMonth(viewYear, viewMonth);
+  selectedDate = null;
+  renderCalendar();
+  renderDetail();
+}
+
+document.getElementById('prev-btn').addEventListener('click', () => {
+  const m = viewMonth === 0 ? 11 : viewMonth - 1;
+  const y = viewMonth === 0 ? viewYear - 1 : viewYear;
+  goToMonth(y, m);
+});
+document.getElementById('next-btn').addEventListener('click', () => {
+  const m = viewMonth === 11 ? 0 : viewMonth + 1;
+  const y = viewMonth === 11 ? viewYear + 1 : viewYear;
+  goToMonth(y, m);
+});
+document.getElementById('today-btn').addEventListener('click', () => {
+  goToMonth(today.getFullYear(), today.getMonth());
+});
+
+// ---------- Admin roster ----------
+function renderAdminTable(){
+  const body = document.getElementById('member-table-body');
+  const emptyEl = document.getElementById('empty-table');
+  body.innerHTML = '';
+
+  if(members.length === 0){ emptyEl.style.display = 'block'; return; }
+  emptyEl.style.display = 'none';
+
+  members.slice().sort((a,b) => a.name.localeCompare(b.name,'ko')).forEach(m => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.name}</td>
+      <td>${m.team || '-'}</td>
+      <td><span class="type-pill ${m.type}">${m.type}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" data-action="edit" data-id="${m.id}">수정</button>
+          <button class="icon-btn" data-action="delete" data-id="${m.id}">삭제</button>
+        </div>
+      </td>`;
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const m = members.find(x => x.id === id);
+      members = members.filter(x => x.id !== id);
+      await saveMembers();
+      renderAdminTable();
+      renderDetail();
+      showToast(`${m ? m.name : ''}님이 명단에서 삭제되었습니다.`);
+    });
+  });
+  body.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const m = members.find(x => x.id === id);
+      if(!m) return;
+      editingId = id;
+      document.getElementById('f-name').value = m.name;
+      document.getElementById('f-team').value = m.team || '';
+      document.getElementById('f-type').value = m.type;
+      document.getElementById('add-btn').textContent = '수정 완료';
+      document.getElementById('f-name').scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+  });
+}
+
+function resetForm(){
+  editingId = null;
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-team').value = '';
+  document.getElementById('f-type').value = '정규';
+  document.getElementById('add-btn').textContent = '추가';
+}
+
+document.getElementById('add-btn').addEventListener('click', async () => {
+  const name = document.getElementById('f-name').value.trim();
+  const team = document.getElementById('f-team').value.trim();
+  const type = document.getElementById('f-type').value;
+  if(!name){ showToast('이름을 입력해주세요.'); return; }
+
+  if(editingId){
+    const m = members.find(x => x.id === editingId);
+    if(m){ m.name = name; m.team = team; m.type = type; }
+    showToast('수정되었습니다.');
+  } else {
+    members.push({ id: uid(), name, team, type });
+    showToast('추가되었습니다.');
+  }
+  await saveMembers();
+  resetForm();
+  renderAdminTable();
+  renderDetail();
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.getAttribute('data-tab');
+    document.getElementById('tab-board').style.display = target === 'board' ? 'block' : 'none';
+    document.getElementById('tab-admin').style.display = target === 'admin' ? 'block' : 'none';
+  });
+});
+
+// ---------- Init ----------
+(async function init(){
+  document.getElementById('cal-grid').innerHTML = '<div class="loading">불러오는 중…</div>';
+  await loadMembers();
+  renderAdminTable();
+  await goToMonth(viewYear, viewMonth);
+})();
+</script>
+</body>
+</html>
