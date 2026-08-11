@@ -34,7 +34,7 @@
   }
   .wrap{max-width:1080px;margin:0 auto;padding:36px 20px 80px;}
 
-  header{margin-bottom:28px;}
+  header{margin-bottom:28px; position:relative;}
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
     font-size:12px;
@@ -45,6 +45,13 @@
   }
   h1{ font-size:clamp(26px, 4vw, 34px); font-weight:800; margin:0 0 8px; letter-spacing:-0.01em; }
   .sub{color:var(--ink-soft); font-size:14.5px; margin:0;}
+  .logout-btn{
+    position:absolute; top:0; right:0;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600;
+    border:1px solid var(--line); background:var(--paper-raised); border-radius:8px;
+    padding:6px 10px; cursor:pointer; color:var(--ink-soft);
+  }
+  .logout-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
 
   .tabs{ display:flex; gap:4px; margin:26px 0 20px; border-bottom:1px solid var(--line); }
   .tab{
@@ -198,6 +205,8 @@
   .btn-primary{ background:var(--ink); color:var(--paper); }
   .btn-primary:hover{ opacity:.88; }
   .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-ghost{ background:var(--paper-raised); border:1px solid var(--line); color:var(--ink-soft); }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-soft); }
 
   /* Admin roster */
   .admin-panel{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
@@ -231,17 +240,59 @@
     position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
     background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px;
     opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+    z-index:100;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
   .loading{ color:var(--ink-soft); font-size:13.5px; padding:20px 0; }
+
+  /* Password gate */
+  .gate{
+    position:fixed; inset:0; background:var(--paper); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .gate-card{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius);
+    padding:34px 30px; width:min(92vw, 400px);
+  }
+  .gate-eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em;
+    color:var(--ink-soft); text-transform:uppercase; margin-bottom:10px;
+  }
+  .gate-title{ font-size:20px; font-weight:800; margin:0 0 6px; }
+  .gate-sub{ font-size:13.5px; color:var(--ink-soft); margin:0 0 20px; }
+  .gate-card input[type=password]{
+    width:100%; font-family:'Pretendard'; font-size:15px; padding:11px 12px;
+    border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink);
+    margin-bottom:12px;
+  }
+  .gate-error{ color:var(--alert); font-size:13px; margin:0 0 12px; display:none; }
+  .gate-create{ display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
+  .gate-create p{ font-size:12.5px; color:var(--ink-soft); margin:0 0 10px; }
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-eyebrow">VILLAGE BABY · HR OPS</div>
+    <p class="gate-title">자율좌석 현황판</p>
+    <p class="gate-sub">팀 비밀번호를 입력하면 현황판에 입장합니다.</p>
+    <input type="password" id="gate-pw" placeholder="비밀번호" autocomplete="current-password" />
+    <p class="gate-error" id="gate-error"></p>
+    <button class="btn btn-primary" id="gate-enter" style="width:100%;">입장</button>
+    <div class="gate-create" id="gate-create">
+      <p>이 비밀번호로 만들어진 현황판이 없습니다. 오타가 아닌지 확인해주세요.<br/>처음 설정하는 경우에만 아래 버튼으로 새 현황판을 만드세요.</p>
+      <button class="btn btn-ghost" id="gate-create-btn" style="width:100%;">이 비밀번호로 새 현황판 만들기</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none;">
   <header>
     <div class="eyebrow">VILLAGE BABY · HR OPS</div>
     <h1>자율좌석 현황판</h1>
-    <p class="sub">여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요.</p>
+    <p class="sub">여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 등록 내용은 팀 전체에 실시간으로 공유됩니다.</p>
+    <button class="logout-btn" id="logout-btn">잠그기</button>
   </header>
 
   <div class="tabs">
@@ -310,23 +361,29 @@
 
 <div class="toast" id="toast"></div>
 
-<script>
-// GitHub Pages 등 일반 웹 환경에는 window.storage가 없으므로 localStorage로 대체
-// (localStorage는 브라우저별 저장 — 다른 사람과 데이터가 공유되지는 않음)
-if(!window.storage){
-  window.storage = {
-    async get(key){ return { value: localStorage.getItem(key) }; },
-    async set(key, value){ localStorage.setItem(key, value); return {}; },
-  };
-}
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js';
+import { getDatabase, ref, get, set, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js';
+
+// ── Firebase 설정 (Firebase 콘솔 > 프로젝트 설정 > 웹 앱에서 복사) ──
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAt06HtKFq9FMur0HI_KbaAVo2NA8oxoek",
+  authDomain: "seat-board-vb.firebaseapp.com",
+  databaseURL: "https://seat-board-vb-default-rtdb.firebaseio.com",
+  projectId: "seat-board-vb",
+  storageBucket: "seat-board-vb.firebasestorage.app",
+  messagingSenderId: "683594258283",
+  appId: "1:683594258283:web:dabb75bb57407a407a1e2e",
+};
 
 const CAPACITY = { yeouido: 19, chungmuro: 13 };
 const OFFICE_LABEL = { yeouido: '여의도', chungmuro: '충무로' };
 const WEEKDAY_LABEL = ['일','월','화','수','목','금','토'];
+const SAVED_KEY = 'seatboard:boardKey';
 
 function uid(prefix){ return (prefix||'m') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
-// 최초 1회, 저장된 명단이 없을 때만 채워지는 정규팀원 명단 (2026-08-11 기준 업로드 파일 기반)
+// 현황판 최초 생성 시 채워지는 정규팀원 명단 (2026-08-11 기준 업로드 파일 기반)
 const SEED_MEMBERS = [
   { name:'이지현', team:'Biz Team' }, { name:'정채영', team:'Biz Team' }, { name:'정혜민', team:'Biz Team' },
   { name:'박나영', team:'Brand' }, { name:'안선우', team:'Brand' }, { name:'이서현', team:'Brand' },
@@ -339,32 +396,51 @@ const SEED_MEMBERS = [
   { name:'안영주', team:'Product' }, { name:'문혁은', team:'Product' }, { name:'유진수', team:'Product' },
   { name:'임소정', team:'Product' }, { name:'정수형', team:'Product' }, { name:'최제혁', team:'Product' },
   { name:'윤혜준', team:'Product' }, { name:'안연주', team:'GA' },
-].map(m => ({ id: uid(), name: m.name, team: m.team, type: '정규' }));
-
-let members = [];
-let today = new Date();
-let viewYear = today.getFullYear();
-let viewMonth = today.getMonth(); // 0-indexed
-let selectedDate = null; // 'YYYY-MM-DD'
-let attendance = []; // records for the currently viewed month: {id, memberId, date, office}
-let editingId = null;
-
-function pad2(n){ return String(n).padStart(2,'0'); }
-function dateKey(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
-function monthKey(y,m){ return `attendance:${y}-${pad2(m+1)}`; }
-function isWeekend(dow){ return dow === 0 || dow === 6; }
+];
 
 // 팀별 기본 출근 규칙 (getDay() 기준: 월=1, 화=2, 수=3, 목=4, 금=5)
 const TEAM_DEFAULTS = {
-  'Biz Team': [ { dow: 5, office: 'yeouido' } ],                                   // 금요일 여의도
-  'Brand':    [ { dow: 2, office: 'chungmuro' }, { dow: 4, office: 'chungmuro' } ], // 화, 목 충무로
-  'Commerce': [ { dow: 3, office: 'yeouido' } ],                                   // 수요일 여의도
-  'M&E':      [ { dow: 3, office: 'yeouido' } ],                                   // 수요일 여의도
-  'Product':  [ { dow: 1, office: 'yeouido' } ],                                   // 월요일 여의도
+  'Biz Team': [ { dow: 5, office: 'yeouido' } ],
+  'Brand':    [ { dow: 2, office: 'chungmuro' }, { dow: 4, office: 'chungmuro' } ],
+  'Commerce': [ { dow: 3, office: 'yeouido' } ],
+  'M&E':      [ { dow: 3, office: 'yeouido' } ],
+  'Product':  [ { dow: 1, office: 'yeouido' } ],
 };
 
+let db = null;
+let boardKey = null;
+let members = [];
+let attendance = [];
+let membersReady = false;
+let monthLoaded = false;
+let today = new Date();
+let viewYear = today.getFullYear();
+let viewMonth = today.getMonth(); // 0-indexed
+let currentYm = null;
+let selectedDate = null; // 'YYYY-MM-DD'
+let editingId = null;
+let unsubMonth = null;
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function dateKey(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+function ymKey(y,m){ return `${y}-${pad2(m+1)}`; }
+function isWeekend(dow){ return dow === 0 || dow === 6; }
+function boardRef(path){ return ref(db, 'boards/' + boardKey + (path ? '/' + path : '')); }
+
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
 function generateDefaultAttendance(y, m){
-  const records = [];
+  const records = {};
   const daysInMonth = new Date(y, m+1, 0).getDate();
   for(let d=1; d<=daysInMonth; d++){
     const dow = new Date(y, m, d).getDay();
@@ -375,7 +451,7 @@ function generateDefaultAttendance(y, m){
       if(!rules) return;
       rules.forEach(rule => {
         if(rule.dow === dow){
-          records.push({ id: uid('a'), memberId: mem.id, date: key, office: rule.office });
+          records[uid('a')] = { memberId: mem.id, date: key, office: rule.office };
         }
       });
     });
@@ -383,54 +459,50 @@ function generateDefaultAttendance(y, m){
   return records;
 }
 
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 1800);
+// ---------- Realtime subscriptions ----------
+function startSubscriptions(){
+  onValue(boardRef('members'), snap => {
+    const v = snap.val() || {};
+    members = Object.entries(v).map(([id, m]) => ({ id, name: m.name, team: m.team || '', type: m.type || '정규' }));
+    membersReady = true;
+    renderAdminTable();
+    renderCalendar();
+    renderDetail();
+    maybeInitMonth();
+  }, err => {
+    showToast('데이터 연결에 실패했어요. 새로고침 해주세요.');
+    console.error(err);
+  });
+  subscribeMonth();
 }
 
-// ---------- Members ----------
-async function loadMembers(){
-  let stored = null;
+function subscribeMonth(){
+  if(unsubMonth) unsubMonth();
+  currentYm = ymKey(viewYear, viewMonth);
+  monthLoaded = false;
+  attendance = [];
+  const ymAtSubscribe = currentYm;
+  unsubMonth = onValue(boardRef('attendance/' + currentYm), snap => {
+    if(ymAtSubscribe !== currentYm) return; // stale listener guard
+    const v = snap.val() || {};
+    attendance = Object.entries(v).map(([id, a]) => ({ id, ...a }));
+    monthLoaded = true;
+    renderCalendar();
+    renderDetail();
+    maybeInitMonth();
+  }, err => { console.error(err); });
+}
+
+// 이 달에 저장된 기록이 없으면 팀별 기본 출근 규칙으로 초기 생성 (1회만)
+async function maybeInitMonth(){
+  if(!membersReady || !monthLoaded || attendance.length > 0) return;
+  const ym = currentYm;
   try{
-    const res = await window.storage.get('members', true);
-    stored = res && res.value ? JSON.parse(res.value) : null;
-  }catch(e){ stored = null; }
-
-  if(stored === null){
-    members = SEED_MEMBERS;
-    await saveMembers();
-  } else {
-    // 이전 버전 데이터(office/days 필드)가 있어도 이름/팀/소속만 사용
-    members = stored.map(m => ({ id: m.id, name: m.name, team: m.team || '', type: m.type || '정규' }));
-  }
-}
-async function saveMembers(){
-  try{ await window.storage.set('members', JSON.stringify(members), true); }
-  catch(e){ showToast('명단 저장에 실패했어요.'); }
-}
-
-// ---------- Attendance ----------
-async function loadAttendanceForMonth(y,m){
-  let stored = null;
-  try{
-    const res = await window.storage.get(monthKey(y,m), true);
-    stored = res && res.value ? JSON.parse(res.value) : null;
-  }catch(e){
-    stored = null;
-  }
-  if(stored === null){
-    // 이 달에 저장된 기록이 없으면 팀별 기본 출근 규칙으로 초기 생성
-    attendance = generateDefaultAttendance(y, m);
-    await saveAttendanceForMonth(y, m);
-  } else {
-    attendance = stored;
-  }
-}
-async function saveAttendanceForMonth(y,m){
-  try{ await window.storage.set(monthKey(y,m), JSON.stringify(attendance), true); }
-  catch(e){ showToast('출근 등록 저장에 실패했어요.'); }
+    const flag = await get(boardRef('monthInit/' + ym));
+    if(flag.exists() || ym !== currentYm) return;
+    await set(boardRef('monthInit/' + ym), true);
+    await set(boardRef('attendance/' + ym), generateDefaultAttendance(viewYear, viewMonth));
+  }catch(e){ console.error(e); }
 }
 
 function recordsForDate(date){
@@ -453,24 +525,26 @@ function renderCalendar(){
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
 
+  if(!monthLoaded){
+    grid.innerHTML = '<div class="loading">불러오는 중…</div>';
+    return;
+  }
+
   const firstOfMonth = new Date(viewYear, viewMonth, 1);
   const startDow = firstOfMonth.getDay(); // 0=Sun
   const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
 
   const cells = [];
-  // leading (prev month)
   for(let i=0;i<startDow;i++){
     const d = daysInPrevMonth - startDow + 1 + i;
     const pm = viewMonth === 0 ? 11 : viewMonth - 1;
     const py = viewMonth === 0 ? viewYear - 1 : viewYear;
     cells.push({ day:d, y:py, m:pm, outMonth:true });
   }
-  // current month
   for(let d=1; d<=daysInMonth; d++){
     cells.push({ day:d, y:viewYear, m:viewMonth, outMonth:false });
   }
-  // trailing (next month) to complete final week row
   let trail = 1;
   while(cells.length % 7 !== 0){
     const nm = viewMonth === 11 ? 0 : viewMonth + 1;
@@ -598,11 +672,10 @@ function renderDetail(){
         x.textContent = '×';
         x.title = '출근 취소';
         x.addEventListener('click', async () => {
-          attendance = attendance.filter(a => a.id !== r.id);
-          await saveAttendanceForMonth(viewYear, viewMonth);
-          renderCalendar();
-          renderDetail();
-          showToast(`${m.name}님의 출근이 취소되었습니다.`);
+          try{
+            await remove(boardRef('attendance/' + currentYm + '/' + r.id));
+            showToast(`${m.name}님의 출근이 취소되었습니다.`);
+          }catch(e){ showToast('취소에 실패했어요. 다시 시도해주세요.'); }
         });
         chip.appendChild(x);
         row.appendChild(chip);
@@ -651,12 +724,11 @@ function renderDetail(){
       const memberId = document.getElementById('ci-name').value;
       const office = document.getElementById('ci-office').value;
       if(!memberId) return;
-      attendance.push({ id: uid('a'), memberId, date: selectedDate, office });
-      await saveAttendanceForMonth(viewYear, viewMonth);
-      renderCalendar();
-      renderDetail();
-      const m = memberName(memberId);
-      showToast(`${m ? m.name : ''}님 ${OFFICE_LABEL[office]} 출근이 등록되었습니다.`);
+      try{
+        await set(boardRef('attendance/' + currentYm + '/' + uid('a')), { memberId, date: selectedDate, office });
+        const m = memberName(memberId);
+        showToast(`${m ? m.name : ''}님 ${OFFICE_LABEL[office]} 출근이 등록되었습니다.`);
+      }catch(e){ showToast('등록에 실패했어요. 다시 시도해주세요.'); }
     });
     checkin.appendChild(btn);
   }
@@ -665,14 +737,11 @@ function renderDetail(){
 }
 
 // ---------- Month navigation ----------
-async function goToMonth(y, m){
+function goToMonth(y, m){
   viewYear = y; viewMonth = m;
-  renderMonthTitle();
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '<div class="loading">불러오는 중…</div>';
-  await loadAttendanceForMonth(viewYear, viewMonth);
   selectedDate = null;
-  renderCalendar();
+  renderMonthTitle();
+  subscribeMonth();
   renderDetail();
 }
 
@@ -718,11 +787,10 @@ function renderAdminTable(){
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const m = members.find(x => x.id === id);
-      members = members.filter(x => x.id !== id);
-      await saveMembers();
-      renderAdminTable();
-      renderDetail();
-      showToast(`${m ? m.name : ''}님이 명단에서 삭제되었습니다.`);
+      try{
+        await remove(boardRef('members/' + id));
+        showToast(`${m ? m.name : ''}님이 명단에서 삭제되었습니다.`);
+      }catch(e){ showToast('삭제에 실패했어요. 다시 시도해주세요.'); }
     });
   });
   body.querySelectorAll('[data-action="edit"]').forEach(btn => {
@@ -754,18 +822,16 @@ document.getElementById('add-btn').addEventListener('click', async () => {
   const type = document.getElementById('f-type').value;
   if(!name){ showToast('이름을 입력해주세요.'); return; }
 
-  if(editingId){
-    const m = members.find(x => x.id === editingId);
-    if(m){ m.name = name; m.team = team; m.type = type; }
-    showToast('수정되었습니다.');
-  } else {
-    members.push({ id: uid(), name, team, type });
-    showToast('추가되었습니다.');
-  }
-  await saveMembers();
-  resetForm();
-  renderAdminTable();
-  renderDetail();
+  try{
+    if(editingId){
+      await update(boardRef('members/' + editingId), { name, team, type });
+      showToast('수정되었습니다.');
+    } else {
+      await set(boardRef('members/' + uid()), { name, team, type });
+      showToast('추가되었습니다.');
+    }
+    resetForm();
+  }catch(e){ showToast('저장에 실패했어요. 다시 시도해주세요.'); }
 });
 
 document.querySelectorAll('.tab').forEach(tab => {
@@ -778,12 +844,78 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+// ---------- Password gate ----------
+function gateError(msg, showCreate){
+  const err = document.getElementById('gate-error');
+  err.textContent = msg;
+  err.style.display = msg ? 'block' : 'none';
+  document.getElementById('gate-create').style.display = showCreate ? 'block' : 'none';
+}
+
+function enterBoard(){
+  localStorage.setItem(SAVED_KEY, boardKey);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderMonthTitle();
+  startSubscriptions();
+}
+
+async function boardExists(){
+  const snap = await get(boardRef('created'));
+  return snap.exists();
+}
+
+document.getElementById('gate-enter').addEventListener('click', async () => {
+  const pw = document.getElementById('gate-pw').value;
+  if(!pw){ gateError('비밀번호를 입력해주세요.', false); return; }
+  gateError('', false);
+  boardKey = await sha256Hex('seatboard:' + pw);
+  try{
+    if(await boardExists()){ enterBoard(); }
+    else { gateError('입장할 수 없습니다.', true); }
+  }catch(e){
+    gateError('연결에 실패했어요. 잠시 후 다시 시도해주세요.', false);
+    console.error(e);
+  }
+});
+document.getElementById('gate-pw').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('gate-enter').click();
+});
+
+document.getElementById('gate-create-btn').addEventListener('click', async () => {
+  try{
+    const seedObj = {};
+    SEED_MEMBERS.forEach(m => { seedObj[uid()] = { name: m.name, team: m.team, type: '정규' }; });
+    await update(boardRef(''), { created: true, members: seedObj });
+    enterBoard();
+    showToast('새 현황판이 만들어졌습니다.');
+  }catch(e){ gateError('현황판 생성에 실패했어요. 다시 시도해주세요.', false); }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  localStorage.removeItem(SAVED_KEY);
+  location.reload();
+});
+
 // ---------- Init ----------
 (async function init(){
-  document.getElementById('cal-grid').innerHTML = '<div class="loading">불러오는 중…</div>';
-  await loadMembers();
-  renderAdminTable();
-  await goToMonth(viewYear, viewMonth);
+  if(FIREBASE_CONFIG.apiKey.startsWith('PASTE')){
+    gateError('아직 서버 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.', false);
+    document.getElementById('gate-enter').disabled = true;
+    return;
+  }
+  db = getDatabase(initializeApp(FIREBASE_CONFIG));
+
+  const saved = localStorage.getItem(SAVED_KEY);
+  if(saved){
+    boardKey = saved;
+    try{
+      if(await boardExists()){ enterBoard(); return; }
+    }catch(e){ /* fall through to gate */ }
+    localStorage.removeItem(SAVED_KEY);
+    boardKey = null;
+  }
+  document.getElementById('gate-pw').focus();
 })();
 </script>
 </body>
