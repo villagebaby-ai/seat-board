@@ -425,6 +425,7 @@ tbody tr:last-child td{border-bottom:none}
           <input type="password" id="admin-new-pw" placeholder="관리자 비밀번호" autocomplete="new-password" style="flex:1;min-width:150px;height:36px;font-size:13px;padding:0 10px;border:1.4px solid var(--gray-300);border-radius:var(--r-md);" />
           <input type="password" id="admin-new-pw2" placeholder="비밀번호 확인" autocomplete="new-password" style="flex:1;min-width:150px;height:36px;font-size:13px;padding:0 10px;border:1.4px solid var(--gray-300);border-radius:var(--r-md);" />
           <button class="btn btn-primary btn-sm" id="admin-set-btn" style="height:36px;">설정</button>
+          <button class="btn btn-ghost btn-sm" id="admin-relock-btn" style="height:36px;display:none;">이 기기에서 잠그기</button>
         </div>
         <p class="period-hint" id="admin-set-msg">설정하면 명단 관리 탭은 이 비밀번호를 입력한 사람만 열 수 있어요. 캘린더와 출근 등록은 전과 동일하게 모두 사용할 수 있습니다.</p>
       </div>
@@ -597,10 +598,17 @@ function renderAdminAccess(){
   document.getElementById('admin-lock').style.display = locked ? 'block' : 'none';
   document.getElementById('admin-content').style.display = locked ? 'none' : 'block';
   document.getElementById('admin-lock-status').textContent = adminHash
-    ? '(설정됨 — 아래에서 비밀번호를 바꿀 수 있어요)'
+    ? '(설정됨 · 이 기기는 관리자로 인증되어 계속 보입니다. 다른 팀원에게는 잠겨 있어요)'
     : '(미설정 — 현재 누구나 명단을 수정할 수 있어요)';
   document.getElementById('admin-set-btn').textContent = adminHash ? '변경' : '설정';
+  document.getElementById('admin-relock-btn').style.display = adminHash ? 'inline-flex' : 'none';
 }
+
+document.getElementById('admin-relock-btn').addEventListener('click', () => {
+  localStorage.removeItem(ADMIN_OK_KEY);
+  renderAdminAccess();
+  showToast('이 기기에서 명단 관리가 잠겼습니다.');
+});
 
 document.getElementById('admin-unlock-btn').addEventListener('click', async () => {
   const pw = document.getElementById('admin-pw').value;
