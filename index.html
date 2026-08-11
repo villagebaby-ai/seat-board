@@ -49,6 +49,12 @@ a{color:inherit;text-decoration:none}
 
 /* ===== Topbar (hr 스타일) ===== */
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;padding:30px 0 18px;gap:20px}
+.page-h{display:flex;align-items:flex-start;gap:14px;min-width:0}
+.page-h .logo{
+  width:46px;height:46px;border-radius:50%;overflow:hidden;box-shadow:var(--sh-blue);
+  flex-shrink:0;margin-top:2px;
+}
+.page-h .logo img{width:100%;height:100%;object-fit:cover;display:block}
 .page-h h1{font-size:25px;font-weight:700;letter-spacing:-.6px}
 .page-h p{color:var(--gray);margin-top:5px;font-size:13px}
 .topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
@@ -299,8 +305,11 @@ tbody tr:last-child td{border-bottom:none}
 <div class="wrap" id="app" style="display:none;">
   <div class="topbar">
     <div class="page-h">
-      <h1>자율좌석 현황판</h1>
-      <p>여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 팀 전체에 실시간으로 공유됩니다.</p>
+      <div class="logo"><img src="billy_logo.png" alt="베이비빌리" /></div>
+      <div>
+        <h1>자율좌석 현황판</h1>
+        <p>여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 팀 전체에 실시간으로 공유됩니다.</p>
+      </div>
     </div>
     <div class="topbar-actions">
       <a class="hr-chip" href="https://hr.villagebaby.kr" target="_blank" rel="noopener noreferrer">
