@@ -216,6 +216,9 @@ a{color:inherit;text-decoration:none}
 .sched-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 @media (max-width:700px){.sched-grid{grid-template-columns:repeat(3,1fr)}}
 .sched-grid select{width:100%;height:36px;font-size:13px;padding:0 8px;border:1.4px solid var(--gray-300);border-radius:var(--r-md);background:var(--white);color:var(--gray-900);cursor:pointer}
+.period-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;max-width:420px}
+.period-grid input[type=date]{width:100%;height:36px;font-size:13px;padding:0 8px;border:1.4px solid var(--gray-300);border-radius:var(--r-md);background:var(--white);color:var(--gray-900);font-family:inherit}
+.period-hint{font-size:11.5px;color:var(--gray);margin-top:8px}
 .form-actions{display:flex;justify-content:flex-end;margin-bottom:22px}
 .sched-cell{font-size:12px;color:var(--gray-700)}
 .field label{display:block;font-size:11.5px;color:var(--gray);margin-bottom:5px;font-weight:500;padding-left:2px}
@@ -389,13 +392,18 @@ tbody tr:last-child td{border-bottom:none}
           <div class="field"><label>목</label><select class="sched-day" data-day="thu"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
           <div class="field"><label>금</label><select class="sched-day" data-day="fri"><option value="">없음</option><option value="yeouido">여의도</option><option value="chungmuro">충무로</option></select></div>
         </div>
+        <div class="period-grid">
+          <div class="field"><label>근무 시작일 (선택)</label><input type="date" id="f-start" /></div>
+          <div class="field"><label>근무 종료일 (선택)</label><input type="date" id="f-end" /></div>
+        </div>
+        <p class="period-hint">근무 기간을 설정하면 기간 밖의 날짜에는 캘린더에 표기되지 않아요 (인턴 등 기간제 근무자용).</p>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" id="add-btn">추가</button>
       </div>
 
       <table>
-        <thead><tr><th>이름</th><th>팀</th><th>소속</th><th>고정 일정</th><th></th></tr></thead>
+        <thead><tr><th>이름</th><th>팀</th><th>소속</th><th>고정 일정</th><th>근무 기간</th><th></th></tr></thead>
         <tbody id="member-table-body"></tbody>
       </table>
       <div id="empty-table" class="empty-table" style="display:none;">등록된 팀원이 없습니다. 위에서 추가해보세요.</div>
@@ -447,6 +455,23 @@ const SEED_MEMBERS = [
   { name:'안영주', team:'Product' }, { name:'문혁은', team:'Product' }, { name:'유진수', team:'Product' },
   { name:'임소정', team:'Product' }, { name:'정수형', team:'Product' }, { name:'최제혁', team:'Product' },
   { name:'윤혜준', team:'Product' }, { name:'안연주', team:'GA' },
+  // 인턴 명단 (2026-08-11 인턴현황 파일 기반) — 개인 고정 일정 + 근무 기간
+  { name:'나화원', team:'M&E', type:'인턴', schedule:{ mon:'chungmuro', wed:'yeouido', thu:'yeouido' }, start:'2026-03-03', end:'2026-08-31' },
+  { name:'박원경', team:'Commerce', type:'인턴', schedule:{ wed:'yeouido' }, start:'2026-07-01', end:'2026-12-31' },
+  { name:'김지민', team:'Biz Team', type:'인턴', schedule:{ mon:'yeouido', thu:'yeouido', fri:'yeouido' }, start:'2026-07-01', end:'2026-12-31' },
+  { name:'이예인', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'chungmuro', wed:'chungmuro', thu:'chungmuro', fri:'chungmuro' }, start:'2026-07-01', end:'2026-12-31' },
+  { name:'김예나래', team:'Brand', type:'인턴', schedule:{ tue:'chungmuro', thu:'chungmuro' }, start:'2026-06-01', end:'2026-08-31' },
+  { name:'변경혜', team:'M&E', type:'인턴', schedule:{ mon:'yeouido', wed:'yeouido', fri:'yeouido' }, start:'2026-06-01', end:'2026-08-31' },
+  { name:'임경지', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'yeouido', wed:'chungmuro', thu:'yeouido', fri:'chungmuro' }, start:'2026-06-08', end:'2026-08-28' },
+  { name:'이지원', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'yeouido', wed:'chungmuro', thu:'yeouido', fri:'chungmuro' }, start:'2026-06-08', end:'2026-08-28' },
+  { name:'오예원', team:'M&E', type:'인턴', schedule:{ mon:'yeouido', tue:'yeouido', wed:'yeouido', thu:'yeouido', fri:'yeouido' }, start:'2026-06-08', end:'2026-08-28' },
+  { name:'최보은', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'chungmuro', wed:'chungmuro', thu:'chungmuro', fri:'chungmuro' }, start:'2026-06-22', end:'2026-09-11' },
+  { name:'김도연', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'chungmuro', wed:'chungmuro', thu:'chungmuro', fri:'chungmuro' }, start:'2026-07-01', end:'2026-09-30' },
+  { name:'백지은', team:'M&E', type:'인턴', schedule:{ mon:'yeouido', tue:'yeouido', wed:'yeouido', thu:'yeouido', fri:'yeouido' }, start:'2026-08-03', end:'2026-10-09' },
+  { name:'정민선', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'chungmuro', wed:'chungmuro', thu:'chungmuro', fri:'chungmuro' }, start:'2026-08-04', end:'2026-10-30' },
+  { name:'김슬기', team:'M&E', type:'인턴', schedule:{ mon:'yeouido', tue:'yeouido', wed:'yeouido', thu:'yeouido', fri:'yeouido' }, start:'2026-08-04', end:'2026-10-31' },
+  { name:'나유진', team:'M&E', type:'인턴', schedule:{ mon:'yeouido', tue:'yeouido', wed:'yeouido', thu:'yeouido', fri:'yeouido' }, start:'2026-08-04', end:'2026-10-31' },
+  { name:'이승현', team:'Brand', type:'인턴', schedule:{ mon:'chungmuro', tue:'chungmuro', wed:'chungmuro', thu:'chungmuro', fri:'chungmuro' }, start:'2026-08-11', end:'2026-11-10' },
 ];
 
 // 팀별 기본 출근 규칙 (getDay() 기준: 월=1, 화=2, 수=3, 목=4, 금=5)
@@ -490,8 +515,12 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
-// 개인 고정 일정이 있으면 그 일정, 없으면 팀 기본 출근일
-function effectiveOffice(mem, dow){
+// 개인 고정 일정이 있으면 그 일정, 없으면 팀 기본 출근일. 근무 기간(start/end) 밖이면 없음
+function effectiveOffice(mem, dow, date){
+  if(date){
+    if(mem.start && date < mem.start) return null;
+    if(mem.end && date > mem.end) return null;
+  }
   if(mem.schedule) return mem.schedule[DOW_KEYS[dow]] || null;
   const rules = TEAM_DEFAULTS[mem.team];
   if(!rules) return null;
@@ -499,31 +528,30 @@ function effectiveOffice(mem, dow){
   return r ? r.office : null;
 }
 
-function generateDefaultAttendance(y, m){
-  const records = {};
-  const daysInMonth = new Date(y, m+1, 0).getDate();
+// 특정 팀원의 한 달치 기본 출근 기록 생성 (m: 1-based month)
+function buildMemberMonth(mem, y, m){
+  const recs = {};
+  const daysInMonth = new Date(y, m, 0).getDate();
   for(let d=1; d<=daysInMonth; d++){
-    const dow = new Date(y, m, d).getDay();
+    const dow = new Date(y, m-1, d).getDay();
     if(isWeekend(dow)) continue;
-    const key = dateKey(y, m, d);
-    members.forEach(mem => {
-      const office = effectiveOffice(mem, dow);
-      if(office) records[uid('a')] = { memberId: mem.id, date: key, office };
-    });
+    const date = dateKey(y, m-1, d);
+    const office = effectiveOffice(mem, dow, date);
+    if(office) recs[uid('a')] = { memberId: mem.id, date, office };
   }
-  return records;
+  return recs;
 }
 
 // ---------- Realtime subscriptions ----------
 function startSubscriptions(){
   onValue(boardRef('members'), snap => {
     const v = snap.val() || {};
-    members = Object.entries(v).map(([id, m]) => ({ id, name: m.name, team: m.team || '', type: m.type || '정규', schedule: m.schedule || null }));
+    members = Object.entries(v).map(([id, m]) => ({ id, name: m.name, team: m.team || '', type: m.type || '정규', schedule: m.schedule || null, start: m.start || null, end: m.end || null }));
     membersReady = true;
     renderAdminTable();
     renderCalendar();
     renderDetail();
-    maybeInitMonth();
+    ensureMembersInMonth();
   }, err => {
     showToast('데이터 연결에 실패했어요. 새로고침 해주세요.');
     console.error(err);
@@ -544,20 +572,44 @@ function subscribeMonth(){
     monthLoaded = true;
     renderCalendar();
     renderDetail();
-    maybeInitMonth();
+    ensureMembersInMonth();
   }, err => { console.error(err); });
 }
 
-// 이 달에 저장된 기록이 없으면 팀별 기본 출근 규칙으로 초기 생성 (1회만)
-async function maybeInitMonth(){
-  if(!membersReady || !monthLoaded || attendance.length > 0) return;
+// 이 달에 아직 기본 출근이 채워지지 않은 팀원을 찾아 자동 생성.
+// 새 팀원 등록 시 현재 달 캘린더에 즉시 반영되고, 새 달을 처음 열 때 전체 생성도 담당.
+let ensuring = false;
+async function ensureMembersInMonth(){
+  if(!membersReady || !monthLoaded || ensuring) return;
   const ym = currentYm;
+  ensuring = true;
   try{
-    const flag = await get(boardRef('monthInit/' + ym));
-    if(flag.exists() || ym !== currentYm) return;
-    await set(boardRef('monthInit/' + ym), true);
-    await set(boardRef('attendance/' + ym), generateDefaultAttendance(viewYear, viewMonth));
+    const mmSnap = await get(boardRef('monthMembers/' + ym));
+    if(ym !== currentYm) return;
+    let marked = mmSnap.val();
+    const updates = {};
+    if(!marked){
+      // 예전 방식으로 생성된 달: 기록이 있는 팀원은 이미 반영된 것으로 간주
+      marked = {};
+      members.forEach(mem => {
+        if(attendance.some(a => a.memberId === mem.id)){
+          marked[mem.id] = true;
+          updates['monthMembers/' + ym + '/' + mem.id] = true;
+        }
+      });
+      updates['monthInit/' + ym] = true;
+    }
+    const [y, m] = ym.split('-').map(Number);
+    members.forEach(mem => {
+      if(marked[mem.id]) return;
+      updates['monthMembers/' + ym + '/' + mem.id] = true;
+      Object.assign(updates, Object.fromEntries(
+        Object.entries(buildMemberMonth(mem, y, m)).map(([k, v]) => ['attendance/' + ym + '/' + k, v])
+      ));
+    });
+    if(Object.keys(updates).length) await update(boardRef(''), updates);
   }catch(e){ console.error(e); }
+  finally{ ensuring = false; }
 }
 
 function recordsForDate(date){
@@ -834,6 +886,7 @@ function renderAdminTable(){
       <td>${m.team || '-'}</td>
       <td><span class="type-pill ${m.type}">${m.type}</span></td>
       <td class="sched-cell">${schedSummary(m.schedule)}</td>
+      <td class="sched-cell">${fmtPeriod(m)}</td>
       <td>
         <div class="row-actions">
           <button class="icon-btn" data-action="edit" data-id="${m.id}">수정</button>
@@ -863,6 +916,8 @@ function renderAdminTable(){
       document.getElementById('f-team').value = m.team || '';
       document.getElementById('f-type').value = m.type;
       fillScheduleForm(m.schedule);
+      document.getElementById('f-start').value = m.start || '';
+      document.getElementById('f-end').value = m.end || '';
       document.getElementById('add-btn').textContent = '수정 완료';
       document.getElementById('f-name').scrollIntoView({ behavior:'smooth', block:'center' });
     });
@@ -877,6 +932,12 @@ function schedSummary(s){
   if(by.yeouido.length) parts.push(by.yeouido.join('·') + ' 여의도');
   if(by.chungmuro.length) parts.push(by.chungmuro.join('·') + ' 충무로');
   return parts.length ? parts.join(' / ') : '-';
+}
+
+function fmtPeriod(m){
+  if(!m.start && !m.end) return '-';
+  const f = s => s ? s.slice(2).replace(/-/g, '.') : '';
+  return `${f(m.start)} ~ ${f(m.end)}`;
 }
 
 function readScheduleForm(){
@@ -896,10 +957,12 @@ function resetForm(){
   document.getElementById('f-team').value = '';
   document.getElementById('f-type').value = '정규';
   fillScheduleForm(null);
+  document.getElementById('f-start').value = '';
+  document.getElementById('f-end').value = '';
   document.getElementById('add-btn').textContent = '추가';
 }
 
-// 고정 일정이 바뀐 팀원의 현재 달 출근 기록을 새 일정 기준으로 다시 채움
+// 일정·팀·근무기간이 바뀐 팀원의 현재 달 출근 기록을 새 기준으로 다시 채움
 async function resyncMemberMonth(memberId, mem){
   if(!currentYm) return;
   const [y, m] = currentYm.split('-').map(Number);
@@ -907,13 +970,10 @@ async function resyncMemberMonth(memberId, mem){
   attendance.filter(a => a.memberId === memberId).forEach(a => {
     updates['attendance/' + currentYm + '/' + a.id] = null;
   });
-  const daysInMonth = new Date(y, m, 0).getDate();
-  for(let d=1; d<=daysInMonth; d++){
-    const dow = new Date(y, m-1, d).getDay();
-    if(isWeekend(dow)) continue;
-    const office = effectiveOffice(mem, dow);
-    if(office) updates['attendance/' + currentYm + '/' + uid('a')] = { memberId, date: dateKey(y, m-1, d), office };
-  }
+  Object.entries(buildMemberMonth({ ...mem, id: memberId }, y, m)).forEach(([k, v]) => {
+    updates['attendance/' + currentYm + '/' + k] = v;
+  });
+  updates['monthMembers/' + currentYm + '/' + memberId] = true;
   if(Object.keys(updates).length) await update(boardRef(''), updates);
 }
 
@@ -923,24 +983,28 @@ document.getElementById('add-btn').addEventListener('click', async () => {
   const type = document.getElementById('f-type').value;
   if(!name){ showToast('이름을 입력해주세요.'); return; }
   const schedule = readScheduleForm();
+  const start = document.getElementById('f-start').value || null;
+  const end = document.getElementById('f-end').value || null;
 
   try{
-    let id = editingId;
-    let prevSched = null;
     const data = { name, team, type };
     if(schedule) data.schedule = schedule;
+    if(start) data.start = start;
+    if(end) data.end = end;
     if(editingId){
-      const prev = members.find(x => x.id === editingId);
-      prevSched = prev && prev.schedule ? prev.schedule : null;
-      await set(boardRef('members/' + editingId), data);
-      showToast('수정되었습니다.');
-    } else {
-      id = uid();
+      const id = editingId;
+      const prev = members.find(x => x.id === id);
       await set(boardRef('members/' + id), data);
-      showToast('추가되었습니다.');
-    }
-    if(JSON.stringify(schedule) !== JSON.stringify(prevSched)){
-      await resyncMemberMonth(id, { name, team, schedule });
+      showToast('수정되었습니다.');
+      // 일정·팀·근무기간이 바뀌면 현재 달 캘린더를 새 기준으로 갱신
+      const changed = !prev ||
+        JSON.stringify(schedule) !== JSON.stringify(prev.schedule || null) ||
+        team !== (prev.team || '') || start !== prev.start || end !== prev.end;
+      if(changed) await resyncMemberMonth(id, data);
+    } else {
+      // 신규 등록: ensureMembersInMonth가 현재 달 기본 출근을 자동 생성
+      await set(boardRef('members/' + uid()), data);
+      showToast('추가되었습니다. 캘린더에 기본 출근일이 반영됩니다.');
     }
     resetForm();
   }catch(e){ showToast('저장에 실패했어요. 다시 시도해주세요.'); }
@@ -1032,6 +1096,23 @@ async function runMigrations(){
 
     if(Object.keys(updates).length) await update(boardRef(''), updates);
   }catch(e){ console.error(e); }
+
+  // 인턴 명단 일괄 등록 (1회) — 캘린더 반영은 ensureMembersInMonth가 자동 처리
+  try{
+    const flag = await get(boardRef('meta/migrInterns1'));
+    if(flag.exists()) return;
+    await set(boardRef('meta/migrInterns1'), true);
+    const mems = (await get(boardRef('members'))).val() || {};
+    const existing = new Set(Object.values(mems).map(m => m.name));
+    const updates = {};
+    SEED_MEMBERS.filter(m => m.type === '인턴' && !existing.has(m.name)).forEach(m => {
+      const rec = { name: m.name, team: m.team, type: m.type, schedule: m.schedule };
+      if(m.start) rec.start = m.start;
+      if(m.end) rec.end = m.end;
+      updates['members/' + uid()] = rec;
+    });
+    if(Object.keys(updates).length) await update(boardRef(''), updates);
+  }catch(e){ console.error(e); }
 }
 
 async function boardExists(){
@@ -1073,11 +1154,13 @@ document.getElementById('setup-btn').addEventListener('click', async () => {
     }
     const seedObj = {};
     SEED_MEMBERS.forEach(m => {
-      const rec = { name: m.name, team: m.team, type: '정규' };
+      const rec = { name: m.name, team: m.team, type: m.type || '정규' };
       if(m.schedule) rec.schedule = m.schedule;
+      if(m.start) rec.start = m.start;
+      if(m.end) rec.end = m.end;
       seedObj[uid()] = rec;
     });
-    await update(boardRef(''), { created: true, members: seedObj, 'meta/migrSched1': true });
+    await update(boardRef(''), { created: true, members: seedObj, 'meta/migrSched1': true, 'meta/migrInterns1': true });
     enterBoard();
     showToast('현황판이 만들어졌습니다. 비밀번호를 팀원들에게 공유해주세요.');
   }catch(e){
