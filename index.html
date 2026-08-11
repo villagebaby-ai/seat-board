@@ -1046,8 +1046,13 @@ function enterBoard(){
   runMigrations().finally(startSubscriptions);
 }
 
-// 기존 현황판 데이터 보정 (1회): 이정윤(CEO) 등록 + 이정윤·김영웅 고정 일정 적용
+// 기존 현황판 데이터 보정 (각 1회): 이정윤·김영웅 고정 일정, 인턴 명단
 async function runMigrations(){
+  await migrateSchedules().catch(e => console.error(e));
+  await migrateInterns().catch(e => console.error(e));
+}
+
+async function migrateSchedules(){
   try{
     const flag = await get(boardRef('meta/migrSched1'));
     if(flag.exists()) return;
@@ -1096,8 +1101,10 @@ async function runMigrations(){
 
     if(Object.keys(updates).length) await update(boardRef(''), updates);
   }catch(e){ console.error(e); }
+}
 
-  // 인턴 명단 일괄 등록 (1회) — 캘린더 반영은 ensureMembersInMonth가 자동 처리
+// 인턴 명단 일괄 등록 (1회) — 캘린더 반영은 ensureMembersInMonth가 자동 처리
+async function migrateInterns(){
   try{
     const flag = await get(boardRef('meta/migrInterns1'));
     if(flag.exists()) return;
