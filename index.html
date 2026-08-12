@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex,nofollow" />
-<title>빌베 등원기록부 · 베이비빌리 HR</title>
+<title>빌베 좌석배치도 · 베이비빌리 HR</title>
 <link rel="icon" type="image/png" href="billy_logo.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
 :root{
-  /* ===== 빌베 등원기록부 디자인 토큰 (hr.villagebaby.kr 톤 기반) ===== */
+  /* ===== 빌베 좌석배치도 디자인 토큰 (hr.villagebaby.kr 톤 기반) ===== */
   --blue:#2D7CD2;
   --blue-700:#1f5796;
   --blue-600:#2669b4;
@@ -192,7 +192,8 @@ a{color:inherit;text-decoration:none}
   display:flex;align-items:center;justify-content:center;transition:.12s;
 }
 .name-chip .x-btn:hover{background:var(--red-soft);color:var(--sys-red)}
-.empty-note{color:var(--gray);font-size:13px}
+.empty-note{color:var(--gray);font-size:13px;display:flex;align-items:center;gap:10px}
+.empty-note img{width:44px;height:auto;flex-shrink:0;border-radius:8px}
 
 /* ===== Self check-in ===== */
 .checkin-box{
@@ -245,6 +246,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 .icon-btn:hover{color:var(--blue);border-color:var(--blue-100);background:var(--blue-50)}
 .empty-table{padding:30px 10px;text-align:center;color:var(--gray);font-size:13.5px}
+.empty-table img{width:64px;height:auto;display:block;margin:0 auto 10px}
 
 .toast{
   position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
@@ -269,6 +271,8 @@ tbody tr:last-child td{border-bottom:none}
 .gate-brand .logo img{width:100%;height:100%;object-fit:cover;display:block}
 .gate-brand .lb-t{font-weight:700;font-size:17px;letter-spacing:-.3px}
 .gate-brand .lb-s{font-size:12px;color:var(--gray)}
+.gate-baby{display:flex;justify-content:center;margin:2px 0 18px}
+.gate-baby img{width:112px;height:auto}
 .gate-card h2{font-size:22px;font-weight:700;margin-bottom:7px}
 .gate-desc{color:var(--gray);font-size:13px;margin-bottom:22px;line-height:1.55}
 .gate-card input[type=password]{
@@ -291,8 +295,10 @@ tbody tr:last-child td{border-bottom:none}
   <div class="gate-card">
     <div class="gate-brand">
       <div class="logo"><img src="billy_logo.png" alt="빌리지베이비" /></div>
-      <div><div class="lb-t">빌베 등원기록부</div><div class="lb-s">자율좌석 현황판 · 베이비빌리 HR</div></div>
+      <div><div class="lb-t">빌베 좌석배치도</div><div class="lb-s">자율좌석 현황판 · 베이비빌리 HR</div></div>
     </div>
+
+    <div class="gate-baby"><img src="baby.png" alt="빌베 아기 캐릭터" /></div>
 
     <div id="mode-enter">
       <h2>입장하기</h2>
@@ -320,7 +326,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page-h">
       <div class="logo"><img src="billy_logo.png" alt="베이비빌리" /></div>
       <div>
-        <h1>빌베 등원기록부</h1>
+        <h1>빌베 좌석배치도</h1>
         <p>여의도(19석) · 충무로(13석) — 날짜를 선택해 출근 현황을 확인하고, 직접 등록·취소하세요. 팀 전체에 실시간으로 공유됩니다.</p>
       </div>
     </div>
@@ -417,7 +423,7 @@ tbody tr:last-child td{border-bottom:none}
         <thead><tr><th>이름</th><th>팀</th><th>소속</th><th>고정 일정</th><th>근무 기간</th><th></th></tr></thead>
         <tbody id="member-table-body"></tbody>
       </table>
-      <div id="empty-table" class="empty-table" style="display:none;">등록된 팀원이 없습니다. 위에서 추가해보세요.</div>
+      <div id="empty-table" class="empty-table" style="display:none;"><img src="baby.png" alt="" />등록된 팀원이 없습니다. 위에서 추가해보세요.</div>
 
       <div class="sched-box" style="margin-top:22px;margin-bottom:0;">
         <div class="sched-title">관리자 잠금 <span id="admin-lock-status"></span></div>
@@ -850,7 +856,7 @@ function renderDetail(){
     if(recs.length === 0){
       const empty = document.createElement('div');
       empty.className = 'empty-note';
-      empty.textContent = '등록된 팀원이 없습니다.';
+      empty.innerHTML = '<img src="baby.png" alt="" />등록된 팀원이 없습니다.';
       panel.appendChild(empty);
     } else {
       const row = document.createElement('div');
@@ -863,7 +869,7 @@ function renderDetail(){
         if(!m) return;
         const chip = document.createElement('div');
         chip.className = 'name-chip' + (m.type === '인턴' ? ' intern' : '');
-        chip.innerHTML = `${m.name}${m.team ? ' · ' + m.team : ''} <span class="badge">${m.type}</span>`;
+        chip.innerHTML = `${m.name}${m.team ? ' · ' + m.team : ''}${m.type === '인턴' ? ' <span class="badge">인턴</span>' : ''}`;
         const x = document.createElement('button');
         x.className = 'x-btn';
         x.textContent = '×';
